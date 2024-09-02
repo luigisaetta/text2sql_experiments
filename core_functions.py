@@ -9,6 +9,7 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.prompts import PromptTemplate
 
 from sqlalchemy import create_engine
+from sqlalchemy import text
 
 from prompt_template import PROMPT_TEMPLATE, REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
 from utils import get_console_logger
@@ -198,7 +199,6 @@ def generate_sql_query(user_query, schema, llm, verbose=VERBOSE):
         user_query (str): User-provided query.
         schema (str): Formatted schema information.
         llm: Language model instance.
-        no_clean: if set to TRue return the generated text without cleaning
     Returns:
         tuple: Cleaned SQL query and the full response text.
     """
@@ -224,6 +224,66 @@ def generate_sql_query(user_query, schema, llm, verbose=VERBOSE):
     return cleaned_query, response
 
 
+def test_sql_query_sintax(sql_text, engine):
+    """
+    Test the SQL against the DB
+
+    Doesn't fetch records
+    """
+    with engine.connect() as connection:
+        try:
+            _ = connection.execute(text(sql_text))
+
+            return True
+
+        except Exception as e:
+            logger.info("SQL query sintax errors %s", e)
+
+            return False
+
+
+def generate_sql_query_with_pair_models(
+    user_query, schema, engine, llm1, llm2, verbose=False
+):
+    """
+    Combine SQL generation and post-processing.
+    Use two model... if with the first get error then try with second
+    Args:
+        user_query (str): User-provided query.
+        schema (str): Formatted schema information.
+        llm: Language model instance.
+    Returns:
+        tuple: Cleaned SQL query and the full response text.
+    """
+
+    # try model 1
+    cleaned_query, _ = generate_sql_query(user_query, schema, llm1)
+
+    # test query1
+    is_ok = test_sql_query_sintax(cleaned_query, engine)
+
+    if is_ok:
+        return cleaned_query
+
+    # else, go to model2
+    logger.info("Testing second model...")
+
+    cleaned_query, _ = generate_sql_query(user_query, schema, llm2)
+
+    # test query1
+    is_ok = test_sql_query_sintax(cleaned_query, engine)
+
+    if is_ok:
+        return cleaned_query
+
+    if verbose:
+        logger.error("Error with both models.")
+        logger.info("")
+        logger.info("User query: %s", user_query)
+
+    return ""
+
+
 def correct_sql_query(user_query, schema, sql_and_error, llm):
     """
     Correct a SQL query with errors.
@@ -245,6 +305,5 @@ def correct_sql_query(user_query, schema, sql_and_error, llm):
     except Exception as e:
         logger.error("Error in correct_sql: %s", e)
         cleaned_query = ""
-    
 
     return cleaned_query, response.content

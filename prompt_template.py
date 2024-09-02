@@ -7,6 +7,11 @@ in the response as 'Here is a rephrased version of the response' : {response}"""
 
 # the list of few shot examples is here
 EXAMPLES = """"
+User Query: list top 10 sales give customer name and product name
+SQL Query: SELECT c.cust_first_name || ' ' || c.cust_last_name AS customer_name, p.prod_name AS product_name, s.quantity_sold, s.amount_sold 
+FROM sales s JOIN customers c ON s.cust_id = c.cust_id JOIN products p ON s.prod_id = p.prod_id ORDER BY s.amount_sold 
+DESC FETCH FIRST 10 ROWS ONLY
+
 User Query: Describe table SALES
 SQL Query: SELECT column_name, data_type FROM user_tab_columns WHERE table_name = 'SALES'
 
@@ -60,7 +65,7 @@ WHERE
 User Query: Get the list of promotion names, customer names, cities, and regions for each sale made in Europe.
 SQL Query: SELECT
     pr.promo_name,
-    c.cust_first_name||' '||c.cust_last_name) AS customer_name,
+    c.cust_first_name||' '||c.cust_last_name AS customer_name,
     c.cust_city,
     co.country_region
 FROM
