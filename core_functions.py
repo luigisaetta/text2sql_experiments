@@ -242,12 +242,11 @@ def test_sql_query_sintax(sql_text, engine):
             return False
 
 
-def generate_sql_query_with_pair_models(
-    user_query, schema, engine, llm1, llm2, verbose=False
-):
+def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose=False):
     """
     Combine SQL generation and post-processing.
-    Use two model... if with the first get error then try with second
+    Use a list of models... if with the first get error then try with second
+    and so on until one succeed
     Args:
         user_query (str): User-provided query.
         schema (str): Formatted schema information.
@@ -255,27 +254,18 @@ def generate_sql_query_with_pair_models(
     Returns:
         tuple: Cleaned SQL query and the full response text.
     """
+    for llm in llm_list:
+        # try model
+        cleaned_query, _ = generate_sql_query(user_query, schema, llm)
 
-    # try model 1
-    cleaned_query, _ = generate_sql_query(user_query, schema, llm1)
+        # test query1
+        is_ok = test_sql_query_sintax(cleaned_query, engine)
 
-    # test query1
-    is_ok = test_sql_query_sintax(cleaned_query, engine)
+        if is_ok:
+            # break the for
+            return cleaned_query
 
-    if is_ok:
-        return cleaned_query
-
-    # else, go to model2
-    logger.info("Testing second model...")
-
-    cleaned_query, _ = generate_sql_query(user_query, schema, llm2)
-
-    # test query1
-    is_ok = test_sql_query_sintax(cleaned_query, engine)
-
-    if is_ok:
-        return cleaned_query
-
+    # here all the models have failed
     if verbose:
         logger.error("Error with both models.")
         logger.info("")
