@@ -258,7 +258,7 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose
         # try model
         cleaned_query, _ = generate_sql_query(user_query, schema, llm)
 
-        # test query1
+        # test query
         is_ok = test_sql_query_sintax(cleaned_query, engine)
 
         if is_ok:
