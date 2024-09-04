@@ -1,0 +1,244 @@
+CREATE TABLE ap_invoices (
+	invoice_id NUMBER(38, 0) NOT NULL, 
+	invoice_number VARCHAR(100 CHAR), 
+	invoice_currency VARCHAR(100 CHAR), 
+	payment_currency VARCHAR(100 CHAR), 
+	invoice_amount DOUBLE PRECISION, 
+	invoice_date TIMESTAMP, 
+	business_unit VARCHAR(100 CHAR), 
+	supplier_number VARCHAR(100 CHAR), 
+	accounting_date TIMESTAMP, 
+	invoice_source VARCHAR(100 CHAR), 
+	invoice_type VARCHAR(100 CHAR), 
+	paygroup VARCHAR(100 CHAR), 
+	invoice_received_date TIMESTAMP, 
+	payment_terms VARCHAR(100 CHAR), 
+	terms_date TIMESTAMP, 
+	payment_method_code VARCHAR(100 CHAR), 
+	payment_method VARCHAR(100 CHAR), 
+	legal_entity VARCHAR(100 CHAR), 
+	legal_entity_id VARCHAR(100 CHAR), 
+	validation_status VARCHAR(100 CHAR), 
+	approval_status VARCHAR(100 CHAR), 
+	paid_status VARCHAR(100 CHAR), 
+	accounting_status VARCHAR(100 CHAR), 
+	canceled_flag VARCHAR(100 CHAR), 
+	amount_paid DOUBLE PRECISION, 
+	party VARCHAR(100 CHAR), 
+	party_site VARCHAR(100 CHAR), 
+	control_amount DOUBLE PRECISION, 
+	taxation_country VARCHAR(100 CHAR), 
+	account_coding_status VARCHAR(100 CHAR), 
+	budget_date TIMESTAMP, 
+	canceled_date TIMESTAMP, 
+	canceled_by VARCHAR(100 CHAR), 
+	creation_date TIMESTAMP, 
+	created_by VARCHAR(100 CHAR), 
+	last_updated_date TIMESTAMP, 
+	last_updated_by VARCHAR(100 CHAR)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from ap_invoices table:
+invoice_id	invoice_number	invoice_currency	payment_currency	invoice_amount	invoice_date	business_unit	supplier_number	accounting_date	invoice_source	invoice_type	paygroup	invoice_received_date	payment_terms	terms_date	payment_method_code	payment_method	legal_entity	legal_entity_id	validation_status	approval_status	paid_status	accounting_status	canceled_flag	amount_paid	party	party_site	control_amount	taxation_country	account_coding_status	budget_date	canceled_date	canceled_by	creation_date	created_by	last_updated_date	last_updated_by
+300000227834945	40167	EUR	EUR	72384.0	2021-02-03 00:00:00	France Business Unit	1280	2021-02-03 00:00:00	Manual Invoice Entry	Standard	Standard	None	Immediate	2021-02-03 00:00:00	EFT	Electronic	France Legal Entity	LE_FR_1	Validated	Not required	Unpaid	Accounted	false	None	SFR	SFR France	None	France	Not required	2021-02-03 00:00:00	None	None	2021-06-29 12:44:43.001000	CAROLINE.VALENCE	2021-06-29 12:47:44.703000	CAROLINE.VALENCE
+300000230521790	40168	EUR	EUR	122808.0	2021-03-03 00:00:00	France Business Unit	1280	2021-03-03 00:00:00	Manual Invoice Entry	Standard	Standard	None	Immediate	2021-03-03 00:00:00	EFT	Electronic	France Legal Entity	LE_FR_1	Validated	Not required	Unpaid	Accounted	false	None	SFR	SFR France	None	France	Complete	2021-03-03 00:00:00	None	None	2021-08-02 13:10:55.001000	CAROLINE.VALENCE	2021-08-02 13:17:44.648000	CAROLINE.VALENCE
+300000229408086	43951	GBP	GBP	0.0	2021-03-04 00:00:00	UK Business Unit	1343	2021-03-04 00:00:00	Manual Invoice Entry	Standard	Standard	None	Immediate	2021-03-04 00:00:00	EFT	Electronic	UK Legal Entity	LE_UK_1	Canceled	Not required	Unpaid	Accounted	true	None	Amazon	Amazon UK	None	United Kingdom	Not required	2021-03-04 00:00:00	2021-07-14 00:00:00	Jun.Royale	2021-07-14 08:39:17.001000	Jun.Royale	2021-07-14 08:46:18.173000	Jun.Royale
+*/
+----------------------------------------
+
+CREATE TABLE channels (
+	channel_id NUMBER NOT NULL, 
+	channel_desc VARCHAR(20 CHAR) NOT NULL, 
+	channel_class VARCHAR(20 CHAR) NOT NULL, 
+	channel_class_id NUMBER NOT NULL, 
+	channel_total VARCHAR(13 CHAR) NOT NULL, 
+	channel_total_id NUMBER NOT NULL
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from channels table:
+channel_id	channel_desc	channel_class	channel_class_id	channel_total	channel_total_id
+3.0	Direct Sales	Direct	12.0	Channel total	1.0
+9.0	Tele Sales	Direct	12.0	Channel total	1.0
+5.0	Catalog	Indirect	13.0	Channel total	1.0
+*/
+----------------------------------------
+
+CREATE TABLE countries (
+	country_id NUMBER NOT NULL, 
+	country_iso_code CHAR(2) NOT NULL, 
+	country_name VARCHAR(40 CHAR) NOT NULL, 
+	country_subregion VARCHAR(30 CHAR) NOT NULL, 
+	country_subregion_id NUMBER NOT NULL, 
+	country_region VARCHAR(20 CHAR) NOT NULL, 
+	country_region_id NUMBER NOT NULL, 
+	country_total VARCHAR(11 CHAR) NOT NULL, 
+	country_total_id NUMBER NOT NULL, 
+	country_name_hist VARCHAR(40 CHAR)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from countries table:
+country_id	country_iso_code	country_name	country_subregion	country_subregion_id	country_region	country_region_id	country_total	country_total_id	country_name_hist
+52771.0	CN	China	Asia	52793.0	Asia	52802.0	World total	52806.0	None
+52781.0	IN	India	Asia	52793.0	Asia	52802.0	World total	52806.0	None
+52782.0	JP	Japan	Asia	52793.0	Asia	52802.0	World total	52806.0	None
+*/
+----------------------------------------
+
+CREATE TABLE customers (
+	cust_id NUMBER NOT NULL, 
+	cust_first_name VARCHAR(20 CHAR) NOT NULL, 
+	cust_last_name VARCHAR(40 CHAR) NOT NULL, 
+	cust_gender CHAR(1) NOT NULL, 
+	cust_year_of_birth NUMBER(4, 0) NOT NULL, 
+	cust_marital_status VARCHAR(20 CHAR), 
+	cust_street_address VARCHAR(40 CHAR) NOT NULL, 
+	cust_postal_code VARCHAR(10 CHAR) NOT NULL, 
+	cust_city VARCHAR(30 CHAR) NOT NULL, 
+	cust_city_id NUMBER NOT NULL, 
+	cust_state_province VARCHAR(40 CHAR) NOT NULL, 
+	cust_state_province_id NUMBER NOT NULL, 
+	country_id NUMBER NOT NULL, 
+	cust_main_phone_number VARCHAR(25 CHAR) NOT NULL, 
+	cust_income_level VARCHAR(30 CHAR), 
+	cust_credit_limit NUMBER, 
+	cust_email VARCHAR(50 CHAR), 
+	cust_total VARCHAR(14 CHAR) NOT NULL, 
+	cust_total_id NUMBER NOT NULL, 
+	cust_src_id NUMBER, 
+	cust_eff_from DATE, 
+	cust_eff_to DATE, 
+	cust_valid VARCHAR(1 CHAR)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from customers table:
+cust_id	cust_first_name	cust_last_name	cust_gender	cust_year_of_birth	cust_marital_status	cust_street_address	cust_postal_code	cust_city	cust_city_id	cust_state_province	cust_state_province_id	country_id	cust_main_phone_number	cust_income_level	cust_credit_limit	cust_email	cust_total	cust_total_id	cust_src_id	cust_eff_from	cust_eff_to	cust_valid
+49671.0	Abigail	Ruddy	M	1976	married	27 North Sagadahoc Boulevard	60332	Ede	51442.0	Gelderland	52610.0	52770.0	519-236-6123	G: 130,000 - 149,999	1500.0	Ruddy@company.example.com	Customer total	52772.0	None	1998-01-01 00:00:00	None	I
+3228.0	Abigail	Ruddy	M	1964	None	37 West Geneva Street	55406	Hoofddorp	51669.0	Noord-Holland	52683.0	52770.0	327-194-5008	G: 130,000 - 149,999	7000.0	Ruddy@company.example.com	Customer total	52772.0	None	1998-01-01 00:00:00	None	A
+6783.0	Abigail	Ruddy	M	1942	single	47 Toa Alta Road	34077	Schimmert	52297.0	Limburg	52646.0	52770.0	288-613-9676	G: 130,000 - 149,999	11000.0	Ruddy@company.example.com	Customer total	52772.0	None	1998-01-01 00:00:00	None	I
+*/
+----------------------------------------
+
+CREATE TABLE products (
+	prod_id NUMBER(6, 0) NOT NULL, 
+	prod_name VARCHAR(50 CHAR) NOT NULL, 
+	prod_desc VARCHAR(4000 CHAR) NOT NULL, 
+	prod_subcategory VARCHAR(50 CHAR) NOT NULL, 
+	prod_subcategory_id NUMBER NOT NULL, 
+	prod_subcategory_desc VARCHAR(2000 CHAR) NOT NULL, 
+	prod_category VARCHAR(50 CHAR) NOT NULL, 
+	prod_category_id NUMBER NOT NULL, 
+	prod_category_desc VARCHAR(2000 CHAR) NOT NULL, 
+	prod_weight_class NUMBER(3, 0) NOT NULL, 
+	prod_unit_of_measure VARCHAR(20 CHAR), 
+	prod_pack_size VARCHAR(30 CHAR) NOT NULL, 
+	supplier_id NUMBER(6, 0) NOT NULL, 
+	prod_status VARCHAR(20 CHAR) NOT NULL, 
+	prod_list_price NUMBER(8, 2) NOT NULL, 
+	prod_min_price NUMBER(8, 2) NOT NULL, 
+	prod_total VARCHAR(13 CHAR) NOT NULL, 
+	prod_total_id NUMBER NOT NULL, 
+	prod_src_id NUMBER, 
+	prod_eff_from DATE, 
+	prod_eff_to DATE, 
+	prod_valid VARCHAR(1 CHAR)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from products table:
+prod_id	prod_name	prod_desc	prod_subcategory	prod_subcategory_id	prod_subcategory_desc	prod_category	prod_category_id	prod_category_desc	prod_weight_class	prod_unit_of_measure	prod_pack_size	supplier_id	prod_status	prod_list_price	prod_min_price	prod_total	prod_total_id	prod_src_id	prod_eff_from	prod_eff_to	prod_valid
+13	5MP Telephoto Digital Camera	5MP Telephoto Digital Camera	Cameras	2044.0	Cameras	Photo	204.0	Photo	1	U	P	1	STATUS	899.99	899.99	TOTAL	1.0	None	1998-01-01 00:00:00	None	A
+14	17" LCD w/built-in HDTV Tuner	17" LCD w/built-in HDTV Tuner	Monitors	2035.0	Monitors	Peripherals and Accessories	203.0	Peripherals and Accessories	1	U	P	1	STATUS	999.99	999.99	TOTAL	1.0	None	1998-01-01 00:00:00	None	A
+15	Envoy 256MB - 40GB	Envoy 256MB - 40Gb	Desktop PCs	2021.0	Desktop PCs	Hardware	202.0	Hardware	1	U	P	1	STATUS	999.99	999.99	TOTAL	1.0	None	1998-01-01 00:00:00	None	A
+*/
+----------------------------------------
+
+CREATE TABLE promotions (
+	promo_id NUMBER(6, 0) NOT NULL, 
+	promo_name VARCHAR(30 CHAR) NOT NULL, 
+	promo_subcategory VARCHAR(30 CHAR) NOT NULL, 
+	promo_subcategory_id NUMBER NOT NULL, 
+	promo_category VARCHAR(30 CHAR) NOT NULL, 
+	promo_category_id NUMBER NOT NULL, 
+	promo_cost NUMBER(10, 2) NOT NULL, 
+	promo_begin_date DATE NOT NULL, 
+	promo_end_date DATE NOT NULL, 
+	promo_total VARCHAR(15 CHAR) NOT NULL, 
+	promo_total_id NUMBER NOT NULL
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from promotions table:
+promo_id	promo_name	promo_subcategory	promo_subcategory_id	promo_category	promo_category_id	promo_cost	promo_begin_date	promo_end_date	promo_total	promo_total_id
+37	blowout sale	newspaper	28.0	ad news	4.0	0	1998-06-01 00:00:00	1999-01-01 00:00:00	Promotion total	1.0
+999	NO PROMOTION #	NO RPOMOTION	11.0	NO PROMOTION	2.0	0	9999-01-01 00:00:00	9999-01-01 00:00:00	Promotion total	1.0
+36	everyday low price	newspaper	28.0	ad news	4.0	0	1998-06-01 00:00:00	1999-01-01 00:00:00	Promotion total	1.0
+*/
+----------------------------------------
+
+CREATE TABLE sales (
+	prod_id NUMBER NOT NULL, 
+	cust_id NUMBER NOT NULL, 
+	time_id DATE NOT NULL, 
+	channel_id NUMBER NOT NULL, 
+	promo_id NUMBER NOT NULL, 
+	quantity_sold NUMBER(10, 2) NOT NULL, 
+	amount_sold NUMBER(10, 2) NOT NULL
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from sales table:
+prod_id	cust_id	time_id	channel_id	promo_id	quantity_sold	amount_sold
+13.0	524.0	1998-01-20 00:00:00	2.0	999.0	1	1205.99
+13.0	2128.0	1998-04-05 00:00:00	2.0	999.0	1	1250.25
+13.0	3212.0	1998-04-05 00:00:00	2.0	999.0	1	1250.25
+*/
+----------------------------------------
+
+CREATE TABLE suppliers (
+	supplier_number VARCHAR(100 CHAR) NOT NULL, 
+	supplier_id NUMBER(38, 0), 
+	supplier_party_id NUMBER(38, 0), 
+	supplier_name VARCHAR(200 CHAR), 
+	tax_org_type_code VARCHAR(100 CHAR), 
+	supplier_type_code VARCHAR(100 CHAR), 
+	inactive_date TIMESTAMP, 
+	supplier_status VARCHAR(100 CHAR), 
+	business_relationship VARCHAR(100 CHAR), 
+	creation_date TIMESTAMP, 
+	created_by VARCHAR(100 CHAR), 
+	last_updated_date TIMESTAMP, 
+	last_updated_by VARCHAR(100 CHAR), 
+	creation_source_code VARCHAR(100 CHAR), 
+	duns_number VARCHAR(100 CHAR), 
+	one_time_supplier_flag VARCHAR(100 CHAR), 
+	registry_id VARCHAR(100 CHAR), 
+	tax_payer_country_code VARCHAR(100 CHAR), 
+	tax_payer_country VARCHAR(100 CHAR), 
+	tax_payer_id VARCHAR(100 CHAR), 
+	tax_payer_id_flag VARCHAR(100 CHAR), 
+	federal_reportable_flag VARCHAR(100 CHAR), 
+	federal_income_tax_type VARCHAR(100 CHAR), 
+	state_reportable_flag VARCHAR(100 CHAR)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from suppliers table:
+supplier_number	supplier_id	supplier_party_id	supplier_name	tax_org_type_code	supplier_type_code	inactive_date	supplier_status	business_relationship	creation_date	created_by	last_updated_date	last_updated_by	creation_source_code	duns_number	one_time_supplier_flag	registry_id	tax_payer_country_code	tax_payer_country	tax_payer_id	tax_payer_id_flag	federal_reportable_flag	federal_income_tax_type	state_reportable_flag
+1280	300000051066233	300000051066231	SFR	CORPORATION	None	None	ACTIVE	SPEND_AUTHORIZED	2014-01-21 21:05:47.021000	MARC.GRANDE	2014-01-21 21:09:52.931000	MARC.GRANDE	MANUAL	None	true	18511	None	None	None	false	false	None	None
+1286	300000066744397	300000066744395	CLP	CORPORATION	None	None	ACTIVE	SPEND_AUTHORIZED	2014-02-14 23:40:47.988000	CALVIN.ROTH	2014-02-14 23:47:13.559000	CALVIN.ROTH	MANUAL	None	true	35571	None	None	None	false	false	None	None
+1291	300000075469670	300000075469668	Qingyue Inc	CORPORATION	None	None	ACTIVE	SPEND_AUTHORIZED	2014-05-14 19:27:49.022000	YULAN.LIN	2014-06-16 19:03:28.682000	YULAN.LIN	MANUAL	None	false	58653	None	None	None	false	false	None	None
+*/
+----------------------------------------
+

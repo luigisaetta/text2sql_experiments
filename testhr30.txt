@@ -1,0 +1,30 @@
+Retrieve the names of all employees working in the 'Marketing' department along with their job titles.
+Get the list of countries in the 'Europe' region along with their cities.
+Find the total number of employees who have worked in the 'IT_PROG' job in the past.
+List the department names and the number of employees in each department.
+Retrieve the full details of the 'President' job along with the names of employees currently holding this job.
+Find the names and salaries of all employees who report to the manager with employee_id 100.
+Get the details of locations where the 'Administration' department is situated.
+Retrieve the employee_id, start_date, and end_date for all job history records where the department_id is 110.
+List all job titles along with the number of employees currently holding each job.
+Get the list of cities along with their corresponding country names.
+Find the names of employees who have worked in multiple departments.
+Get the details of all employees who have a salary greater than 20000.
+Retrieve the names of all departments located in 'Tokyo'.
+Find the average salary for each job in the company.
+List the region names along with the number of countries in each region.
+Retrieve the list of employees who have 'Manager' in their job title.
+Find the names of all employees and their corresponding department names.
+List the job titles and the number of employees who have a commission_pct greater than 0.
+Get the total salary of all employees in the 'Purchasing' department.
+Retrieve the list of all departments and their managers' names.
+Get the names of all employees who were hired after 2015 along with their hire dates.
+Find the details of employees who have worked in the 'AC_ACCOUNT' job.
+List the countries and the number of locations in each country.
+Get the names of all managers and the number of employees they manage.
+Retrieve the list of all job titles and the minimum salary associated with each job.
+Find the names of all employees who work in the 'Administration' department.
+Get the total number of employees working in each region.
+List the names of all employees and the city they are located in.
+Retrieve the details of the location where the 'Purchasing' department is situated.
+Find the highest salary in each department.

@@ -1,0 +1,30 @@
+SELECT e.first_name, e.last_name, j.job_title FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN jobs j ON e.job_id = j.job_id WHERE d.department_name = 'Marketing'
+SELECT c.country_name, l.city FROM countries c JOIN locations l ON c.country_id = l.country_id JOIN regions r ON c.region_id = r.region_id WHERE r.region_name = 'Europe'
+SELECT COUNT(*) FROM job_history jh WHERE jh.job_id = 'IT_PROG'
+SELECT d.department_name, COUNT(e.employee_id) AS employee_count FROM departments d LEFT JOIN employees e ON d.department_id = e.department_id GROUP BY d.department_name
+SELECT e.*, j.* FROM employees e JOIN jobs j ON e.job_id = j.job_id WHERE j.job_title = 'President'
+SELECT e.first_name, e.last_name, e.salary FROM employees e WHERE e.manager_id = 100
+SELECT l.* FROM locations l JOIN departments d ON l.location_id = d.location_id WHERE d.department_name = 'Administration'
+SELECT jh.employee_id, jh.start_date, jh.end_date FROM job_history jh WHERE jh.department_id = 110
+SELECT j.job_title, COUNT(e.employee_id) AS employee_count FROM jobs j LEFT JOIN employees e ON j.job_id = e.job_id GROUP BY j.job_title
+SELECT l.city, c.country_name FROM locations l JOIN countries c ON l.country_id = c.country_id
+SELECT e.first_name, e.last_name FROM employees e JOIN job_history jh ON e.employee_id = jh.employee_id GROUP BY e.first_name, e.last_name HAVING COUNT(DISTINCT jh.department_id) > 1
+SELECT * FROM employees e WHERE e.salary > 20000
+SELECT d.department_name FROM departments d JOIN locations l ON d.location_id = l.location_id WHERE l.city = 'Tokyo'
+SELECT j.job_title, AVG(e.salary) AS average_salary FROM employees e JOIN jobs j ON e.job_id = j.job_id GROUP BY j.job_title
+SELECT r.region_name, COUNT(c.country_id) AS country_count FROM regions r JOIN countries c ON r.region_id = c.region_id GROUP BY r.region_name
+SELECT e.first_name, e.last_name FROM employees e JOIN jobs j ON e.job_id = j.job_id WHERE j.job_title LIKE '%Manager%'
+SELECT e.first_name, e.last_name, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id
+SELECT j.job_title, COUNT(e.employee_id) AS employee_count FROM jobs j JOIN employees e ON j.job_id = e.job_id WHERE e.commission_pct > 0 GROUP BY j.job_title
+SELECT SUM(e.salary) AS total_salary FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE d.department_name = 'Purchasing'
+SELECT d.department_name, e.first_name, e.last_name FROM departments d JOIN employees e ON d.manager_id = e.employee_id
+SELECT e.first_name, e.last_name, e.hire_date FROM employees e WHERE e.hire_date > TO_DATE('2015-12-31', 'YYYY-MM-DD')
+SELECT e.* FROM employees e JOIN job_history jh ON e.employee_id = jh.employee_id WHERE jh.job_id = 'AC_ACCOUNT'
+SELECT c.country_name, COUNT(l.location_id) AS location_count FROM countries c JOIN locations l ON c.country_id = l.country_id GROUP BY c.country_name
+SELECT m.first_name, m.last_name, COUNT(e.employee_id) AS managed_count FROM employees e JOIN employees m ON e.manager_id = m.employee_id GROUP BY m.first_name, m.last_name
+SELECT j.job_title, j.min_salary FROM jobs j
+SELECT e.first_name, e.last_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE d.department_name = 'Administration'
+SELECT r.region_name, COUNT(e.employee_id) AS employee_count FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id JOIN countries c ON l.country_id = c.country_id JOIN regions r ON c.region_id = r.region_id GROUP BY r.region_name
+SELECT e.first_name, e.last_name, l.city FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id
+SELECT l.* FROM locations l JOIN departments d ON l.location_id = d.location_id WHERE d.department_name = 'Purchasing'
+SELECT d.department_name, MAX(e.salary) AS highest_salary FROM employees e JOIN departments d ON e.department_id = d.department_id GROUP BY d.department_name

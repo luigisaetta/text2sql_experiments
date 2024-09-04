@@ -12,7 +12,7 @@ from core_functions import (
     create_db_engine,
     get_formatted_schema,
     rephrase_response,
-    generate_sql_query,
+    generate_sql_query_with_models,
 )
 from utils import get_console_logger
 
@@ -44,9 +44,9 @@ def init_session():
         logger.info("Reading DB schema info...")
 
         with st.spinner("Getting schema information..."):
-            # putting schema in the ssession we avoid it is
+            # putting schema in the session we avoid it is
             # read for every request
-            st.session_state.schema = get_formatted_schema(engine, llm)
+            st.session_state.schema = get_formatted_schema(engine, model_list[0])
 
 
 #
@@ -58,13 +58,17 @@ st.sidebar.title("Model Selection")
 
 selected_model = st.sidebar.selectbox("Choose an LLM model:", MODEL_LIST)
 
-# Set up the LLM
-llm = ChatOCIGenAI(
-    model_id=selected_model,
-    service_endpoint=ENDPOINT,
-    compartment_id=COMPARTMENT_OCID,
-    model_kwargs={"temperature": 0, "max_tokens": 2048},
-)
+# Set up the LLM model list
+model_list = [
+    ChatOCIGenAI(
+        # 0 is currently llama3-70B
+        model_id=model,
+        service_endpoint=ENDPOINT,
+        compartment_id=COMPARTMENT_OCID,
+        model_kwargs={"temperature": 0, "max_tokens": 2048},
+    )
+    for model in MODEL_LIST
+]
 
 # Create the database engine once and cache it
 engine = create_cached_db_engine()
@@ -86,8 +90,8 @@ if submit_button and user_query:
     st.info("Processing your request...")
 
     # Run the LLM to generate the SQL query and cleans it (remove initial sql, final ;..)
-    cleaned_query, response = generate_sql_query(
-        user_query, schema=st.session_state.schema, llm=llm
+    cleaned_query = generate_sql_query_with_models(
+        user_query, st.session_state.schema, engine, model_list, verbose=True
     )
 
     if len(cleaned_query) > 0:
@@ -119,7 +123,7 @@ if submit_button and user_query:
 
                         with st.spinner("Interpreting results with AI.."):
                             rephrased_response = rephrase_response(
-                                original_response, llm
+                                original_response, model_list[0]
                             )
 
                             st.write("**Response:**")
@@ -135,5 +139,4 @@ if submit_button and user_query:
 
     else:
         st.error("Sorry, could not generate a valid SQL query from the response.")
-        st.write(f"**Response:** {response}")
         logger.error("Sorry, could not generate a valid SQL query from the response.")

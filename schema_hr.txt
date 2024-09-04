@@ -1,0 +1,146 @@
+CREATE TABLE countries (
+	country_id CHAR(2) NOT NULL, 
+	country_name VARCHAR(60 CHAR), 
+	region_id NUMBER, 
+	CONSTRAINT country_c_id_pk PRIMARY KEY (country_id), 
+	CONSTRAINT countr_reg_fk FOREIGN KEY(region_id) REFERENCES regions (region_id)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from countries table:
+country_id	country_name	region_id
+IT	Italy	10.0
+JP	Japan	30.0
+US	United States of America	20.0
+*/
+----------------------------------------
+
+CREATE TABLE departments (
+	department_id NUMBER(4, 0) NOT NULL, 
+	department_name VARCHAR(30 CHAR) NOT NULL, 
+	manager_id NUMBER(6, 0), 
+	location_id NUMBER(4, 0), 
+	CONSTRAINT dept_id_pk PRIMARY KEY (department_id), 
+	CONSTRAINT dept_loc_fk FOREIGN KEY(location_id) REFERENCES locations (location_id), 
+	CONSTRAINT dept_mgr_fk FOREIGN KEY(manager_id) REFERENCES employees (employee_id)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from departments table:
+department_id	department_name	manager_id	location_id
+10	Administration	200	1700
+20	Marketing	201	1800
+30	Purchasing	114	1700
+*/
+----------------------------------------
+
+CREATE TABLE employees (
+	employee_id NUMBER(6, 0) NOT NULL, 
+	first_name VARCHAR(20 CHAR), 
+	last_name VARCHAR(25 CHAR) NOT NULL, 
+	email VARCHAR(25 CHAR) NOT NULL, 
+	phone_number VARCHAR(20 CHAR), 
+	hire_date DATE NOT NULL, 
+	job_id VARCHAR(10 CHAR) NOT NULL, 
+	salary NUMBER(8, 2), 
+	commission_pct NUMBER(2, 2), 
+	manager_id NUMBER(6, 0), 
+	department_id NUMBER(4, 0), 
+	CONSTRAINT emp_emp_id_pk PRIMARY KEY (employee_id), 
+	CONSTRAINT emp_dept_fk FOREIGN KEY(department_id) REFERENCES departments (department_id), 
+	CONSTRAINT emp_job_fk FOREIGN KEY(job_id) REFERENCES jobs (job_id), 
+	CONSTRAINT emp_manager_fk FOREIGN KEY(manager_id) REFERENCES employees (employee_id), 
+	CONSTRAINT emp_salary_min CHECK (salary > 0)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from employees table:
+employee_id	first_name	last_name	email	phone_number	hire_date	job_id	salary	commission_pct	manager_id	department_id
+100	Steven	King	SKING	1.515.555.0100	2013-06-17 00:00:00	AD_PRES	24000	None	None	90
+101	Neena	Yang	NYANG	1.515.555.0101	2015-09-21 00:00:00	AD_VP	17000	None	100	90
+102	Lex	Garcia	LGARCIA	1.515.555.0102	2011-01-13 00:00:00	AD_VP	17000	None	100	90
+*/
+----------------------------------------
+
+CREATE TABLE job_history (
+	employee_id NUMBER(6, 0) NOT NULL, 
+	start_date DATE NOT NULL, 
+	end_date DATE NOT NULL, 
+	job_id VARCHAR(10 CHAR) NOT NULL, 
+	department_id NUMBER(4, 0), 
+	CONSTRAINT jhist_emp_id_st_date_pk PRIMARY KEY (employee_id, start_date), 
+	CONSTRAINT jhist_dept_fk FOREIGN KEY(department_id) REFERENCES departments (department_id), 
+	CONSTRAINT jhist_emp_fk FOREIGN KEY(employee_id) REFERENCES employees (employee_id), 
+	CONSTRAINT jhist_job_fk FOREIGN KEY(job_id) REFERENCES jobs (job_id), 
+	CONSTRAINT jhist_date_interval CHECK (end_date > start_date), 
+	CONSTRAINT jhist_date_interval CHECK (end_date > start_date)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from job_history table:
+employee_id	start_date	end_date	job_id	department_id
+102	2011-01-13 00:00:00	2016-07-24 00:00:00	IT_PROG	60
+101	2007-09-21 00:00:00	2011-10-27 00:00:00	AC_ACCOUNT	110
+101	2011-10-28 00:00:00	2015-03-15 00:00:00	AC_MGR	110
+*/
+----------------------------------------
+
+CREATE TABLE jobs (
+	job_id VARCHAR(10 CHAR) NOT NULL, 
+	job_title VARCHAR(35 CHAR) NOT NULL, 
+	min_salary NUMBER(6, 0), 
+	max_salary NUMBER(6, 0), 
+	CONSTRAINT job_id_pk PRIMARY KEY (job_id)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from jobs table:
+job_id	job_title	min_salary	max_salary
+AD_PRES	President	20080	40000
+AD_VP	Administration Vice President	15000	30000
+AD_ASST	Administration Assistant	3000	6000
+*/
+----------------------------------------
+
+CREATE TABLE locations (
+	location_id NUMBER(4, 0) NOT NULL, 
+	street_address VARCHAR(40 CHAR), 
+	postal_code VARCHAR(12 CHAR), 
+	city VARCHAR(30 CHAR) NOT NULL, 
+	state_province VARCHAR(25 CHAR), 
+	country_id CHAR(2), 
+	CONSTRAINT loc_id_pk PRIMARY KEY (location_id), 
+	CONSTRAINT loc_c_id_fk FOREIGN KEY(country_id) REFERENCES countries (country_id)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from locations table:
+location_id	street_address	postal_code	city	state_province	country_id
+1000	1297 Via Cola di Rie	00989	Roma	None	IT
+1100	93091 Calle della Testa	10934	Venice	None	IT
+1200	2017 Shinjuku-ku	1689	Tokyo	Tokyo Prefecture	JP
+*/
+----------------------------------------
+
+CREATE TABLE regions (
+	region_id NUMBER NOT NULL, 
+	region_name VARCHAR(25 CHAR), 
+	CONSTRAINT reg_id_pk PRIMARY KEY (region_id)
+)
+ COMPRESS FOR QUERY HIGH ROW LEVEL LOCKING
+
+/*
+3 rows from regions table:
+region_id	region_name
+10.0	Europe
+20.0	Americas
+30.0	Asia
+*/
+----------------------------------------
+

@@ -1,0 +1,100 @@
+Query n. 13:
+Get the list of promotions product names customer regions and sales channel names used for each sale. Get only first 30 rows
+
+(oracledb.exceptions.DatabaseError) ORA-00904: "C"."COUNTRY_REGION": invalid identifier
+Help: https://docs.oracle.com/error-help/db/ora-00904/
+[SQL: SELECT 
+    p.prod_name, 
+    pr.promo_name, 
+    c.country_region, 
+    ch.channel_desc
+FROM 
+    sales s
+JOIN 
+    products p ON s.prod_id = p.prod_id
+JOIN 
+    promotions pr ON s.promo_id = pr.promo_id
+JOIN 
+    customers c ON s.cust_id = c.cust_id
+JOIN 
+    countries co ON c.country_id = co.country_id
+JOIN 
+    channels ch ON s.channel_id = ch.channel_id
+FETCH FIRST 30 ROWS ONLY]
+(Background on this error at: https://sqlalche.me/e/20/4xp6)
+---------------------
+ 32%|█████████████████████████████▍                                                              | 16/50 [00:59<02:03,  3.62s/it]---------------------
+Query n. 17:
+Get the list of sales including product names categories and customer regions for sales with an amount greater than 1000.
+
+(oracledb.exceptions.DatabaseError) ORA-00904: "C"."COUNTRY_REGION": invalid identifier
+Help: https://docs.oracle.com/error-help/db/ora-00904/
+[SQL: SELECT
+    p.prod_name,
+    p.prod_category,
+    c.country_region,
+    s.quantity_sold,
+    s.amount_sold
+FROM
+    sales s
+JOIN
+    products p ON s.prod_id = p.prod_id
+JOIN
+    customers c ON s.cust_id = c.cust_id
+JOIN
+    countries co ON c.country_id = co.country_id
+WHERE
+    s.amount_sold > 1000]
+(Background on this error at: https://sqlalche.me/e/20/4xp6)
+---------------------
+ 52%|███████████████████████████████████████████████▊                                            | 26/50 [01:38<01:34,  3.95s/it]---------------------
+Query n. 27:
+List the product names categories customer regions and promotion names for sales made in North America.
+
+(oracledb.exceptions.DatabaseError) ORA-00904: "C"."COUNTRY_REGION": invalid identifier
+Help: https://docs.oracle.com/error-help/db/ora-00904/
+[SQL: SELECT
+    p.prod_name,
+    p.prod_category,
+    c.country_region AS customer_region,
+    pr.promo_name
+FROM
+    sales s
+JOIN
+    products p ON s.prod_id = p.prod_id
+JOIN
+    customers c ON s.cust_id = c.cust_id
+JOIN
+    countries co ON c.country_id = co.country_id
+JOIN
+    promotions pr ON s.promo_id = pr.promo_id
+WHERE
+    co.country_region = 'North America']
+(Background on this error at: https://sqlalche.me/e/20/4xp6)
+---------------------
+ 96%|████████████████████████████████████████████████████████████████████████████████████████▎   | 48/50 [03:11<00:10,  5.20s/it]---------------------
+Query n. 49:
+Get the list of promotion names categories customer names and cities for each sale made in Asia.
+
+(oracledb.exceptions.DatabaseError) ORA-00942: table or view does not exist
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+[SQL: SELECT
+    pr.promo_name,
+    pc.promo_category,
+    c.cust_first_name || ' ' || c.cust_last_name AS customer_name,
+    c.cust_city
+FROM
+    sales s
+JOIN
+    promotions pr ON s.promo_id = pr.promo_id
+JOIN
+    promotion_categories pc ON pr.promo_category_id = pc.promo_category_id
+JOIN
+    customers c ON s.cust_id = c.cust_id
+JOIN
+    countries co ON c.country_id = co.country_id
+WHERE
+    co.country_region = 'Asia']
+(Background on this error at: https://sqlalche.me/e/20/4xp6)
+---------------------
+

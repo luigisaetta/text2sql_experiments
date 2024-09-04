@@ -1,5 +1,8 @@
 """
 SQL agent core functions
+
+This code comes from an initial work done by A. Panda, then we have added
+several contributions to help increase accuracy
 """
 
 import re
@@ -56,10 +59,8 @@ def format_schema(schema):
     # Reconstruct the schema with better formatting
     formatted_schema = []
     for table in tables:
-        # added by LS, dbtools can be removed from schema
-        if "dbtools" not in table:
-            if table.strip():  # Check if the table is not an empty string
-                formatted_schema.append(f"CREATE TABLE {table.strip()}\n{'-'*40}\n")
+        if table.strip():  # Check if the table is not an empty string
+            formatted_schema.append(f"CREATE TABLE {table.strip()}\n{'-'*40}\n")
 
     return "\n".join(formatted_schema)
 
@@ -237,7 +238,7 @@ def test_sql_query_sintax(sql_text, engine):
             return True
 
         except Exception as e:
-            logger.info("SQL query sintax errors %s", e)
+            logger.error("SQL query sintax errors %s", e)
 
             return False
 
@@ -250,9 +251,10 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose
     Args:
         user_query (str): User-provided query.
         schema (str): Formatted schema information.
-        llm: Language model instance.
+        engine: used to test the sintax of the generated query
+        llm_list: Language model list
     Returns:
-        tuple: Cleaned SQL query and the full response text.
+        str: Cleaned SQL query, empty if wrong
     """
     for llm in llm_list:
         # try model
@@ -267,9 +269,9 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose
 
     # here all the models have failed
     if verbose:
-        logger.error("Error with both models.")
-        logger.info("")
-        logger.info("User query: %s", user_query)
+        logger.error("generate_sql_query_with_models: error with all models.")
+        logger.error("")
+        logger.error("User query: %s", user_query)
 
     return ""
 
