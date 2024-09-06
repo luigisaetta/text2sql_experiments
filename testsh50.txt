@@ -1,7 +1,7 @@
 Retrieve the product names and the total amount sold for each product.
 List the product names product categories and sales channels used by customers from Italy.
-Find the customer names products purchased and promotions used by customers in the 'Catalog' channel.
-Get the list of sales including product names customer names and customer regions for purchases made in 1998.
+Find the customer names, products purchased and promotions used by customers in the 'Catalog' channel.
+Get the list of sales including product names, customer names and customer regions for purchases made in 1998.
 List the promotion names customer names and cities of customers who used these promotions. Limit only to first 50 rows
 Find the product names subcategories and promotion names used for products sold in Asia.
 Get the list of customers products purchased and sales channels for sales that took place during the summer of 1998.
