@@ -300,9 +300,9 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list):
         if len(cleaned_query) > 0:
             is_ok = test_sql_query_sintax(cleaned_query, engine)
 
-        if is_ok:
-            # break the for
-            return cleaned_query
+            if is_ok:
+                # break the for
+                return cleaned_query
 
     # here all the models have failed
     logger.error("generate_sql_query_with_models: error with all models.")
