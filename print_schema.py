@@ -5,7 +5,8 @@ Print the current schema
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 
 from core_functions import create_db_engine, get_formatted_schema
-from config_private import MODEL_LIST, ENDPOINT, COMPARTMENT_OCID
+from config import MODEL_LIST, ENDPOINT
+from config_private import COMPARTMENT_OCID
 
 llm = ChatOCIGenAI(
     # test using Llama3

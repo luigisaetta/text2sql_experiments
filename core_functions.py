@@ -7,6 +7,7 @@ several contributions to help increase accuracy
 
 import re
 
+from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.prompts import PromptTemplate
@@ -16,7 +17,8 @@ from sqlalchemy import text
 
 from prompt_template import PROMPT_TEMPLATE, REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
 from utils import get_console_logger
-from config_private import CONNECT_ARGS, VERBOSE
+from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, VERBOSE, DEBUG
+from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()
 
@@ -45,6 +47,25 @@ def create_db_engine():
         return None
 
 
+def get_chat_models():
+    """
+    Create a list with all models to be used to generate SQL
+
+    first is used model_list[0],. then if SQL syntax is wrong 1,
+    """
+    chat_models = [
+        ChatOCIGenAI(
+            model_id=model,
+            service_endpoint=ENDPOINT,
+            compartment_id=COMPARTMENT_OCID,
+            model_kwargs={"temperature": TEMPERATURE, "max_tokens": 2048},
+        )
+        for model in MODEL_LIST
+    ]
+
+    return chat_models
+
+
 def format_schema(schema):
     """
     Format the schema information for better readability.
@@ -61,6 +82,10 @@ def format_schema(schema):
     for table in tables:
         if table.strip():  # Check if the table is not an empty string
             formatted_schema.append(f"CREATE TABLE {table.strip()}\n{'-'*40}\n")
+
+    if VERBOSE:
+        logger.info("Found information for %s tables...", len(tables))
+        logger.info("")
 
     return "\n".join(formatted_schema)
 
@@ -82,12 +107,6 @@ def get_formatted_schema(engine, llm):
 
         schema = format_schema(raw_schema)
 
-        if VERBOSE:
-            logger.info("The formatted schema is:")
-            logger.info(schema)
-            logger.info("End schema information.")
-            logger.info("")
-
         return schema
     except Exception as e:
         logger.error("Error fetching or formatting schema: %s", e, exc_info=True)
@@ -102,7 +121,7 @@ def extract_sql_from_response(response_text):
     Returns:
         str: Extracted SQL query or None if not found.
     """
-    if VERBOSE:
+    if DEBUG:
         logger.info(" Inside extract_sql_from_response")
         logger.info(response_text)
 
@@ -133,7 +152,7 @@ def rephrase_response(original_response, llm):
     return result.content
 
 
-def run_sql_agent(user_query, schema, llm):
+def _generate_sql(user_query, schema, llm):
     """
     Generate an Oracle SQL query from the user's query and schema information.
     Args:
@@ -193,7 +212,7 @@ def custom_clean(sql_query):
     return cleaned_query
 
 
-def generate_sql_query(user_query, schema, llm, verbose=VERBOSE):
+def generate_sql_query(user_query, schema, llm):
     """
     Combine SQL generation and post-processing.
     Args:
@@ -204,14 +223,14 @@ def generate_sql_query(user_query, schema, llm, verbose=VERBOSE):
         tuple: Cleaned SQL query and the full response text.
     """
     # Run the LLM to generate the SQL query
-    sql_query, response = run_sql_agent(user_query, schema, llm)
+    sql_query, response = _generate_sql(user_query, schema, llm)
 
     cleaned_query = ""
 
     if len(sql_query):
         cleaned_query = custom_clean(sql_query)
 
-        if verbose:
+        if DEBUG:
             logger.info("------------------------")
             logger.info("Generated query:")
             logger.info(sql_query)
@@ -243,7 +262,7 @@ def test_sql_query_sintax(sql_text, engine):
             return False
 
 
-def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose=False):
+def generate_sql_query_with_models(user_query, schema, engine, llm_list):
     """
     Combine SQL generation and post-processing.
     Use a list of models... if with the first get error then try with second
@@ -256,9 +275,13 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose
     Returns:
         str: Cleaned SQL query, empty if wrong
     """
-    for llm in llm_list:
+    for i, llm in enumerate(llm_list):
         # try model
         cleaned_query, _ = generate_sql_query(user_query, schema, llm)
+
+        if i > 0 and VERBOSE:
+            logger.info("Trying with another model...")
+            logger.info("")
 
         # test query
         is_ok = test_sql_query_sintax(cleaned_query, engine)
@@ -268,10 +291,9 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list, verbose
             return cleaned_query
 
     # here all the models have failed
-    if verbose:
-        logger.error("generate_sql_query_with_models: error with all models.")
-        logger.error("")
-        logger.error("User query: %s", user_query)
+    logger.error("generate_sql_query_with_models: error with all models.")
+    logger.error("")
+    logger.error("User query: %s", user_query)
 
     return ""
 
@@ -280,6 +302,8 @@ def correct_sql_query(user_query, schema, sql_and_error, llm):
     """
     Correct a SQL query with errors.
     This function can be used as a second try if first gives error.
+
+    To be tested
     """
     prompt = PromptTemplate(
         template=PROMPT_CORRECTION_TEMPLATE,

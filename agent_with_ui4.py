@@ -4,7 +4,6 @@ SQL Agent prototype v 0.8: UI
 
 import streamlit as st
 
-from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 
 from sqlalchemy import text
 
@@ -13,10 +12,10 @@ from core_functions import (
     get_formatted_schema,
     rephrase_response,
     generate_sql_query_with_models,
+    get_chat_models,
 )
 from utils import get_console_logger
-
-from config_private import COMPARTMENT_OCID, ENDPOINT, MODEL_LIST, ENABLE_AI_EXPLANATION
+from config import ENABLE_AI_EXPLANATION
 
 logger = get_console_logger()
 
@@ -56,19 +55,8 @@ def init_session():
 # Sidebar options for model selection
 st.sidebar.title("Model Selection")
 
-selected_model = st.sidebar.selectbox("Choose an LLM model:", MODEL_LIST)
-
 # Set up the LLM model list
-model_list = [
-    ChatOCIGenAI(
-        # 0 is currently llama3-70B
-        model_id=model,
-        service_endpoint=ENDPOINT,
-        compartment_id=COMPARTMENT_OCID,
-        model_kwargs={"temperature": 0, "max_tokens": 2048},
-    )
-    for model in MODEL_LIST
-]
+model_list = get_chat_models()
 
 # Create the database engine once and cache it
 engine = create_cached_db_engine()
@@ -91,7 +79,7 @@ if submit_button and user_query:
 
     # Run the LLM to generate the SQL query and cleans it (remove initial sql, final ;..)
     cleaned_query = generate_sql_query_with_models(
-        user_query, st.session_state.schema, engine, model_list, verbose=True
+        user_query, st.session_state.schema, engine, model_list
     )
 
     if len(cleaned_query) > 0:

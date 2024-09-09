@@ -10,15 +10,15 @@ import bert_score
 
 from tqdm import tqdm
 
-from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 
 from core_functions import (
     create_db_engine,
     get_formatted_schema,
     generate_sql_query_with_models,
+    get_chat_models,
 )
 from utils import get_console_logger
-from config_private import ENDPOINT, COMPARTMENT_OCID, MODEL_LIST
+
 
 # suppress warnings for bert score
 warnings.filterwarnings(
@@ -29,11 +29,11 @@ logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 
 # SH schema
 # file with NL requests
-# TESTS_FILE_NAME = "testsh50.txt"
-TESTS_FILE_NAME = "testhr30.txt"
+TESTS_FILE_NAME = "testsh50.txt"
+# TESTS_FILE_NAME = "testhr30.txt"
 # file with expected (golden) SQL
-# GOLDEN_TRUTH_FILE = "golden_truth_sh50.txt"
-GOLDEN_TRUTH_FILE = "golden_truth_hr30.txt"
+GOLDEN_TRUTH_FILE = "golden_truth_sh50.txt"
+# GOLDEN_TRUTH_FILE = "golden_truth_hr30.txt"
 
 # read list of NL requests
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
@@ -53,23 +53,12 @@ with open(GOLDEN_TRUTH_FILE, "r", encoding="UTF-8") as g_file:
 
 logger = get_console_logger()
 
-
-model_list = [
-    ChatOCIGenAI(
-        # 0 is currently llama3-70B
-        model_id=model,
-        service_endpoint=ENDPOINT,
-        compartment_id=COMPARTMENT_OCID,
-        model_kwargs={"temperature": 0, "max_tokens": 2048},
-    )
-    for model in MODEL_LIST
-]
+model_list = get_chat_models()
 
 engine = create_db_engine()
 
 # create the schema with Llama3
 SCHEMA = get_formatted_schema(engine, model_list[0])
-
 
 # to limit how many we test
 TO_TEST = 30
@@ -93,7 +82,7 @@ for user_query, sql_query in tqdm(zip(USER_QUERIES, sql_queries), total=total_le
     # it is checked internally in generate... call
     # and if syntax is wrong it returns an empty string
     sql_query_generated = generate_sql_query_with_models(
-        user_query, SCHEMA, engine, model_list, verbose=True
+        user_query, SCHEMA, engine, model_list
     )
 
     # normalize the generated sql
