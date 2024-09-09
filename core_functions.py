@@ -53,6 +53,12 @@ def get_chat_models():
 
     first is used model_list[0],. then if SQL syntax is wrong 1,
     """
+    logger.info("")
+    logger.info("List of models used for SQL generation:")
+    for model_name in MODEL_LIST:
+        logger.info("- %s", model_name)
+    logger.info("")
+
     chat_models = [
         ChatOCIGenAI(
             model_id=model,
@@ -133,21 +139,22 @@ def extract_sql_from_response(response_text):
     return None
 
 
-def rephrase_response(original_response, llm):
+def explain_response(user_request, rows, llm):
     """
-    Rephrase the response using the language model.
+    Explain the data retrieved using the language model.
     Args:
-        original_response (str): The original response to rephrase.
+        user_request (str): The original request.
+        rows: data in rows, returned from the SQL query
         llm: Language model instance.
     Returns:
-        str: Rephrased response.
+        str: explanation.
     """
     rephrase_prompt = PromptTemplate(
-        template=REPHRASE_PROMPT, input_variables=["response"]
+        template=REPHRASE_PROMPT, input_variables=["user_request", "data"]
     )
     rephrase_chain = rephrase_prompt | llm
 
-    result = rephrase_chain.invoke({"response": original_response})
+    result = rephrase_chain.invoke({"user_request": user_request, "data": rows})
 
     return result.content
 
@@ -167,6 +174,11 @@ def _generate_sql(user_query, schema, llm):
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE, input_variables=["schema", "query"]
     )
+
+    if DEBUG:
+        effective_prompt = prompt.invoke({"schema": schema, "query": user_query})
+        logger.info("Input prompt len: %s chars.", len(effective_prompt.to_string()))
+
     llm_chain = prompt | llm
 
     response = llm_chain.invoke({"schema": schema, "query": user_query})
@@ -283,8 +295,10 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list):
             logger.info("Trying with another model...")
             logger.info("")
 
-        # test query
-        is_ok = test_sql_query_sintax(cleaned_query, engine)
+        # if not empty test query
+        is_ok = False
+        if len(cleaned_query) > 0:
+            is_ok = test_sql_query_sintax(cleaned_query, engine)
 
         if is_ok:
             # break the for

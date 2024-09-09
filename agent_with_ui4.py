@@ -10,9 +10,9 @@ from sqlalchemy import text
 from core_functions import (
     create_db_engine,
     get_formatted_schema,
-    rephrase_response,
     generate_sql_query_with_models,
     get_chat_models,
+    explain_response,
 )
 from utils import get_console_logger
 from config import ENABLE_AI_EXPLANATION
@@ -53,7 +53,13 @@ def init_session():
 #
 
 # Sidebar options for model selection
-st.sidebar.title("Model Selection")
+st.sidebar.title("Features selection")
+
+CHECK_AI_EXPL_DISABLED = not ENABLE_AI_EXPLANATION
+
+check_enable_ai_expl = st.sidebar.checkbox(
+    "Enable AI explanation", disabled=CHECK_AI_EXPL_DISABLED
+)
 
 # Set up the LLM model list
 model_list = get_chat_models()
@@ -104,18 +110,22 @@ if submit_button and user_query:
 
                 # 2. analyze results with AI
                 try:
-                    if ENABLE_AI_EXPLANATION:
+                    if check_enable_ai_expl:
                         logger.info("AI interpreting response...")
-                        original_response = f"""I asked a question {user_query}
-                                and the response from database was {rows}."""
 
-                        with st.spinner("Interpreting results with AI.."):
-                            rephrased_response = rephrase_response(
-                                original_response, model_list[0]
+                        with st.spinner("Interpreting results with AI..."):
+                            # 9/9 (LS) changed prompt and model, now r-plus
+                            ai_explanation = explain_response(
+                                # user_query: initial request from user
+                                # rows: SQL results
+                                # uses c-r-plus (model1)
+                                user_query,
+                                rows,
+                                model_list[1],
                             )
 
-                            st.write("**Response:**")
-                            st.write(rephrased_response)
+                            st.write("**AI explanation:**")
+                            st.write(ai_explanation)
 
                 except Exception as e:
                     logger.error("Error interpreting results: %s", e)

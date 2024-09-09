@@ -20,6 +20,22 @@ from core_functions import (
 from utils import get_console_logger
 
 
+def normalize_sql(input_sql):
+    """
+    apply some normalizations to SQL to make comparison and compute of bert score easier
+    """
+    # normalize the generated sql
+    # remove newline -> single line
+    query_generated = input_sql.replace("\n", " ")
+    # replace multiple blanks adiacent with a single blank
+    query_generated = re.sub(r"\s+", " ", query_generated)
+
+    return query_generated
+
+
+#
+# Main
+#
 # suppress warnings for bert score
 warnings.filterwarnings(
     "ignore", category=FutureWarning, module="transformers.tokenization_utils_base"
@@ -61,7 +77,7 @@ engine = create_db_engine()
 SCHEMA = get_formatted_schema(engine, model_list[0])
 
 # to limit how many we test
-TO_TEST = 30
+TO_TEST = 50
 
 # put the generated sql in another list
 generated_sql_list = []
@@ -87,9 +103,7 @@ for user_query, sql_query in tqdm(zip(USER_QUERIES, sql_queries), total=total_le
 
     # normalize the generated sql
     # remove newline -> single line
-    sql_query_generated = sql_query_generated.replace("\n", " ")
-    # replace multiple blanks adiacent with a single blank
-    sql_query_generated = re.sub(r"\s+", " ", sql_query_generated)
+    sql_query_generated = normalize_sql(sql_query_generated)
 
     generated_sql_list.append(sql_query_generated)
 

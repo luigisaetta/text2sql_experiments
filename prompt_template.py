@@ -2,8 +2,18 @@
 Prompts and examples
 """
 
-REPHRASE_PROMPT = """Please rephrase the following response and don't respond
-in the response as 'Here is a rephrased version of the response' : {response}"""
+# improved (9/9/2024)
+REPHRASE_PROMPT = """
+User has made an initial request, reported below.
+A SQL query has been executed to retrieve relevant data.
+Explain the provided data in a clear and human understandable format.
+Be assertive.
+Format response in markdown.
+ 
+ User request:
+ {user_request}
+ Data retrieved from database:
+ {data}"""
 
 # the list of few shot examples is here
 EXAMPLES = """"
@@ -84,6 +94,7 @@ WHERE
 PROMPT_TEMPLATE = f"""
 You are an Oracle SQL expert. 
 Given a schema, a user query, and a few examples, generate the appropriate SQL query.
+Extract from the user query only the information relevant to generate a correct SQL statement.
 Note that the target database is an Oracle database, so ensure the SQL query adheres to Oracle standards and syntax.
 Identify first all the tables you need to put in join, then all the needed columns and finally write the SQL.
 Don't use the LIMIT N clause, instead, replace it by FETCH FIRST N ROWS ONLY.
