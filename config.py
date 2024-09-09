@@ -7,7 +7,7 @@ changed: 9/9/2024, pnly private config (pwd) left in config_private
 from config_private import DB_USER, DB_PWD, DSN, WALLET_PWD
 
 VERBOSE = True
-DEBUG = True
+DEBUG = False
 
 ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 
@@ -28,3 +28,6 @@ CONNECT_ARGS = {
 
 # if True add the AI explanation
 ENABLE_AI_EXPLANATION = True
+
+# for REST API
+PORT = 8888

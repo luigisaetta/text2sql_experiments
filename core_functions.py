@@ -131,7 +131,7 @@ def extract_sql_from_response(response_text):
         logger.info(" Inside extract_sql_from_response")
         logger.info(response_text)
 
-    # sql enclosed in triple backtick
+    # assume sql enclosed in triple backtick
     sql_match = re.search(r"```(.*?)```", response_text, re.DOTALL)
 
     if sql_match:
@@ -141,7 +141,7 @@ def extract_sql_from_response(response_text):
 
 def explain_response(user_request, rows, llm):
     """
-    Explain the data retrieved using the language model.
+    Explain the data retrieved using a language model.
     Args:
         user_request (str): The original request.
         rows: data in rows, returned from the SQL query
