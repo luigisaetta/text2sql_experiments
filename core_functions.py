@@ -337,3 +337,23 @@ def correct_sql_query(user_query, schema, sql_and_error, llm):
         cleaned_query = ""
 
     return cleaned_query, response.content
+
+
+def execute_sql(sql_text, engine):
+    """
+    execute the given sql
+    """
+    try:
+        with engine.connect() as connection:
+            logger.info("")
+            logger.info("Executing query...")
+
+            # This has been modified to return a list of dict to make it json serializable
+            rows = connection.execute(text(sql_text)).mappings().all()
+
+            logger.info("Found %s rows..", len(rows))
+
+            return rows
+    except Exception as e:
+        logger.error("Error executing SQL query: %s", e)
+        return None
