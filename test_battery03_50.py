@@ -9,17 +9,19 @@ Ok if SQL can be executed on Oracle DB
 
 from tqdm import tqdm
 
+from database_manager import DatabaseManager
+from llm_manager import LLMManager
+
 from core_functions import (
-    create_db_engine,
     get_formatted_schema,
-    generate_sql_query_with_models,
-    get_chat_models,
+    generate_sql_with_models,
 )
+from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
-from config_private import DB_USER
+from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE
+from config_private import DB_USER, COMPARTMENT_OCID
 
 # SH schema
-# Nome del file da leggere
 # TESTS_FILE_NAME = "testsh50.txt"
 TESTS_FILE_NAME = "testhr30.txt"
 
@@ -34,11 +36,12 @@ logger.info("")
 logger.info("Testing on schema: %s", DB_USER)
 logger.info("")
 
-# 0 is llama3-70B
-model_list = get_chat_models()
-llm1 = model_list[0]
+db_manager = DatabaseManager(CONNECT_ARGS, logger)
+llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
 
-engine = create_db_engine()
+engine = db_manager.engine
+# 0 is llama3-70B
+llm1 = llm_manager.llm_models[0]
 
 SCHEMA = get_formatted_schema(engine, llm1)
 
@@ -48,7 +51,9 @@ N_OK = 0
 for user_query in tqdm(USER_QUERIES):
     N_QUERIES += 1
 
-    sql_query = generate_sql_query_with_models(user_query, SCHEMA, engine, model_list)
+    sql_query = generate_sql_with_models(
+        user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
+    )
 
     # generate with pairs check the sintax
     # if sintax is wrong return empty string

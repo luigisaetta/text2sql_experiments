@@ -11,16 +11,18 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 
+from database_manager import DatabaseManager
+from llm_manager import LLMManager
+
 from core_functions import (
-    get_chat_models,
-    generate_sql_query_with_models,
-    create_db_engine,
     get_formatted_schema,
-    execute_sql,
-    explain_response,
+    generate_sql_with_models,
 )
+from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger, to_dict
-from config import PORT
+from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, PORT
+from config_private import COMPARTMENT_OCID
+
 
 # constants
 MEDIA_TYPE_TEXT = "text/plain"
@@ -40,11 +42,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model_list = get_chat_models()
-llm1 = model_list[0]
-llm2 = model_list[1]
+db_manager = DatabaseManager(CONNECT_ARGS, logger)
+llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
 
-engine = create_db_engine()
+engine = db_manager.engine
+# 0 is llama3-70B
+llm1 = llm_manager.llm_models[0]
+
 SCHEMA = get_formatted_schema(engine, llm1)
 
 
@@ -88,8 +92,8 @@ def generate(request: GenerateSQLInput):
     content = ""
 
     if len(user_query) > 0:
-        sql_query = generate_sql_query_with_models(
-            user_query, SCHEMA, engine, model_list
+        sql_query = generate_sql_with_models(
+            user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
         )
 
         if len(sql_query) > 0:
@@ -113,11 +117,11 @@ def generate_and_exec_sql(request: GenerateSQLInput):
 
     rows = None
     if len(user_query) > 0:
-        sql_query = generate_sql_query_with_models(
-            user_query, SCHEMA, engine, model_list
+        sql_query = generate_sql_with_models(
+            user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
         )
         if len(sql_query) > 0:
-            rows = execute_sql(sql_query, engine)
+            rows = db_manager.execute_sql(sql_query)
 
     rows_ser = [to_dict(row) for row in rows]
 
@@ -128,13 +132,10 @@ def generate_and_exec_sql(request: GenerateSQLInput):
 
 @app.post("/explain_ai_response/", tags=["V1"])
 def explain_ai_response(request: AIAnswerInput):
-    user_request = request.user_query
-    rows = request.rows
-
-    # using r-plus for interpretation
-    ai_response = explain_response(user_request, rows, llm2)
-
-    json_data = json.dumps(ai_response)
+    """
+    To explain the dataset retrieved with AI
+    """
+    json_data = "To be implemented..."
 
     return Response(content=json_data, media_type=MEDIA_TYPE_JSON)
 

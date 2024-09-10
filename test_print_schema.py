@@ -2,22 +2,24 @@
 Print the current schema
 """
 
-from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
+from core_functions import get_formatted_schema
 
-from core_functions import create_db_engine, get_formatted_schema
-from config import MODEL_LIST, ENDPOINT
+from database_manager import DatabaseManager
+from llm_manager import LLMManager
+
+from utils import get_console_logger
+from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE
 from config_private import COMPARTMENT_OCID
 
-llm = ChatOCIGenAI(
-    # test using Llama3
-    model_id=MODEL_LIST[0],
-    service_endpoint=ENDPOINT,
-    compartment_id=COMPARTMENT_OCID,
-    model_kwargs={"temperature": 0, "max_tokens": 2048},
-)
+logger = get_console_logger()
 
-engine = create_db_engine()
+db_manager = DatabaseManager(CONNECT_ARGS, logger)
+llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
 
-SCHEMA = get_formatted_schema(engine, llm)
+engine = db_manager.engine
+# 0 is llama3-70B
+llm1 = llm_manager.llm_models[0]
+
+SCHEMA = get_formatted_schema(engine, llm1)
 
 print(SCHEMA)

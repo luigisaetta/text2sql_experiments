@@ -12,39 +12,13 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.prompts import PromptTemplate
 
-from sqlalchemy import create_engine
-from sqlalchemy import text
 
-from prompt_template import PROMPT_TEMPLATE, REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
+from prompt_template import REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
 from utils import get_console_logger
-from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, VERBOSE, DEBUG
+from config import MODEL_LIST, ENDPOINT, TEMPERATURE, VERBOSE, DEBUG
 from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()
-
-
-def create_db_engine():
-    """
-    Connect to the database and create the DB engine.
-    Returns:
-        engine (Engine): SQLAlchemy engine instance or None if connection fails.
-    """
-    try:
-        logger.info("Connecting to the Database...")
-
-        # new config, without instant client
-        engine = create_engine(
-            "oracle+oracledb://:@",
-            thick_mode=False,
-            connect_args=CONNECT_ARGS,
-        )
-
-        logger.info("Connected, DB engine created...")
-
-        return engine
-    except Exception as e:
-        logger.error("Error setting up SQLDatabase: %s", e)
-        return None
 
 
 def get_chat_models():
@@ -159,35 +133,6 @@ def explain_response(user_request, rows, llm):
     return result.content
 
 
-def _generate_sql(user_query, schema, llm):
-    """
-    Generate an Oracle SQL query from the user's query and schema information.
-    Args:
-        user_query (str): User-provided query.
-        schema (str): Formatted schema information.
-        llm: Language model instance.
-    Returns:
-        tuple: Generated SQL query and the full response text.
-    """
-    # Define a custom prompt template that uses the schema information
-    # Create the prompt template and LLM chain for generating SQL queries
-    prompt = PromptTemplate(
-        template=PROMPT_TEMPLATE, input_variables=["schema", "query"]
-    )
-
-    if DEBUG:
-        effective_prompt = prompt.invoke({"schema": schema, "query": user_query})
-        logger.info("Input prompt len: %s chars.", len(effective_prompt.to_string()))
-
-    llm_chain = prompt | llm
-
-    response = llm_chain.invoke({"schema": schema, "query": user_query})
-
-    sql_query = extract_sql_from_response(response.content)
-
-    return sql_query, response.content
-
-
 def remove_sql_prefix(input_text):
     """
     Remove 'sql' prefix from the beginning of the SQL query, if present.
@@ -205,7 +150,7 @@ def remove_sql_prefix(input_text):
     return stripped_text
 
 
-def custom_clean(sql_query):
+def clean_sql_query(sql_query):
     """
     Post-process the SQL query to make it Oracle-compatible.
     Args:
@@ -215,66 +160,15 @@ def custom_clean(sql_query):
     """
     # remove ;
     # changed: don't remove \n anymore
-    # cleaned_query = sql_query.strip().replace("\n", " ").rstrip(";")
     cleaned_query = sql_query.strip().rstrip(";")
 
     # remove "sql" for Cohere
-    cleaned_query = remove_sql_prefix(cleaned_query)
-
-    return cleaned_query
+    return remove_sql_prefix(cleaned_query)
 
 
-def generate_sql_query(user_query, schema, llm):
-    """
-    Combine SQL generation and post-processing.
-    Args:
-        user_query (str): User-provided query.
-        schema (str): Formatted schema information.
-        llm: Language model instance.
-    Returns:
-        tuple: Cleaned SQL query and the full response text.
-    """
-    # Run the LLM to generate the SQL query
-    sql_query, response = _generate_sql(user_query, schema, llm)
-
-    cleaned_query = ""
-
-    if len(sql_query):
-        cleaned_query = custom_clean(sql_query)
-
-        if DEBUG:
-            logger.info("------------------------")
-            logger.info("Generated query:")
-            logger.info(sql_query)
-            logger.info("")
-            logger.info("Cleaned:")
-            logger.info(cleaned_query)
-    else:
-        logger.info("------------------------")
-        logger.error("Generated query is empty!!!")
-
-    return cleaned_query, response
-
-
-def test_sql_query_sintax(sql_text, engine):
-    """
-    Test the SQL against the DB
-
-    Doesn't fetch records
-    """
-    with engine.connect() as connection:
-        try:
-            _ = connection.execute(text(sql_text))
-
-            return True
-
-        except Exception as e:
-            logger.error("SQL query sintax errors %s", e)
-
-            return False
-
-
-def generate_sql_query_with_models(user_query, schema, engine, llm_list):
+def generate_sql_with_models(
+    user_query, schema, db_manager, llm_manager, prompt_template
+):
     """
     Combine SQL generation and post-processing.
     Use a list of models... if with the first get error then try with second
@@ -287,27 +181,18 @@ def generate_sql_query_with_models(user_query, schema, engine, llm_list):
     Returns:
         str: Cleaned SQL query, empty if wrong
     """
-    for i, llm in enumerate(llm_list):
-        # try model
-        cleaned_query, _ = generate_sql_query(user_query, schema, llm)
+    for llm in llm_manager.llm_models:
+        sql_query, _ = llm_manager.generate_sql(
+            user_query, schema, llm, prompt_template
+        )
 
-        if i > 0 and VERBOSE:
-            logger.info("Trying with another model...")
-            logger.info("")
+        if sql_query:
+            cleaned_query = clean_sql_query(sql_query)
+            if db_manager.test_query_syntax(cleaned_query):
+                return cleaned_query  # Return on first success
+        logger.info("Trying with another model...")
 
-        # if not empty test query
-        is_ok = False
-        if len(cleaned_query) > 0:
-            is_ok = test_sql_query_sintax(cleaned_query, engine)
-
-            if is_ok:
-                # break the for
-                return cleaned_query
-
-    # here all the models have failed
-    logger.error("generate_sql_query_with_models: error with all models.")
-    logger.error("")
-    logger.error("User query: %s", user_query)
+    logger.error("All models failed to generate a valid SQL query.")
 
     return ""
 
@@ -331,29 +216,9 @@ def correct_sql_query(user_query, schema, sql_and_error, llm):
         )
         corrected_sql_query = extract_sql_from_response(response.content)
 
-        cleaned_query = custom_clean(corrected_sql_query)
+        cleaned_query = clean_sql_query(corrected_sql_query)
     except Exception as e:
         logger.error("Error in correct_sql: %s", e)
         cleaned_query = ""
 
     return cleaned_query, response.content
-
-
-def execute_sql(sql_text, engine):
-    """
-    execute the given sql
-    """
-    try:
-        with engine.connect() as connection:
-            logger.info("")
-            logger.info("Executing query...")
-
-            # This has been modified to return a list of dict to make it json serializable
-            rows = connection.execute(text(sql_text)).mappings().all()
-
-            logger.info("Found %s rows..", len(rows))
-
-            return rows
-    except Exception as e:
-        logger.error("Error executing SQL query: %s", e)
-        return None

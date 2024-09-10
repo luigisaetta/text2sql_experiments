@@ -7,35 +7,61 @@ import streamlit as st
 
 from sqlalchemy import text
 
+from database_manager import DatabaseManager
+from llm_manager import LLMManager
+
 from core_functions import (
-    create_db_engine,
     get_formatted_schema,
-    generate_sql_query_with_models,
-    get_chat_models,
+    generate_sql_with_models,
     explain_response,
 )
+from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
-from config import ENABLE_AI_EXPLANATION
+from config import (
+    CONNECT_ARGS,
+    ENABLE_AI_EXPLANATION,
+    MODEL_LIST,
+    ENDPOINT,
+    TEMPERATURE,
+)
+from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()
 
 
 @st.cache_resource
-def create_cached_db_engine():
+def create_cached_db_manager():
     """
-    Function to create and cache the database connection
+    Function to create and cache the database manager
     """
-    try:
-        _engine = create_db_engine()
+    db_manager = DatabaseManager(CONNECT_ARGS, logger)
 
-        return _engine
-    except Exception as e:
-        st.error(f"Error setting up SQLDatabase: {e}")
-        logger.error("Error setting up SQLDatabase %s", e)
+    if db_manager is None:
+        st.error("Error setting up DBManager")
+        logger.error("Error setting up DBManager")
         st.stop()
 
+    return db_manager
 
-def init_session():
+
+@st.cache_resource
+def create_cached_llm_manager():
+    """
+    Function to create and cache the LLM manager
+    """
+    llm_manager = LLMManager(
+        MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger
+    )
+
+    if llm_manager is None:
+        st.error("Error setting up LLMManager")
+        logger.error("Error setting up LLMManager")
+        st.stop()
+
+    return llm_manager
+
+
+def init_session(db_manager, llm_manager):
     """
     Init the session caching DB schema in session
     """
@@ -45,7 +71,10 @@ def init_session():
         with st.spinner("Getting schema information..."):
             # putting schema in the session we avoid it is
             # read for every request
-            st.session_state.schema = get_formatted_schema(engine, model_list[0])
+            engine = db_manager.engine
+            llm1 = llm_manager.llm_models[0]
+
+            st.session_state.schema = get_formatted_schema(engine, llm1)
 
 
 #
@@ -61,14 +90,13 @@ check_enable_ai_expl = st.sidebar.checkbox(
     "Enable AI explanation", disabled=CHECK_AI_EXPL_DISABLED
 )
 
-# Set up the LLM model list
-model_list = get_chat_models()
-
 # Create the database engine once and cache it
-engine = create_cached_db_engine()
+db_manager = create_cached_db_manager()
+
+llm_manager = create_cached_llm_manager()
 
 # here we get the schema and cache in session
-init_session()
+init_session(db_manager, llm_manager)
 
 # Streamlit UI
 st.title("Oracle GenAI SQL Chat Interface")
@@ -84,8 +112,8 @@ if submit_button and user_query:
     st.info("Processing your request...")
 
     # Run the LLM to generate the SQL query and cleans it (remove initial sql, final ;..)
-    cleaned_query = generate_sql_query_with_models(
-        user_query, st.session_state.schema, engine, model_list
+    cleaned_query = generate_sql_with_models(
+        user_query, st.session_state.schema, db_manager, llm_manager, PROMPT_TEMPLATE
     )
 
     if len(cleaned_query) > 0:
@@ -93,7 +121,7 @@ if submit_button and user_query:
 
         # Execute the SQL query
         try:
-            with engine.connect() as connection:
+            with db_manager.engine.connect() as connection:
                 # 1. execute query
                 logger.info("")
                 logger.info("Executing query...")
@@ -115,13 +143,15 @@ if submit_button and user_query:
 
                         with st.spinner("Interpreting results with AI..."):
                             # 9/9 (LS) changed prompt and model, now r-plus
+                            llm2 = llm_manager.llm_models[0]
+
                             ai_explanation = explain_response(
                                 # user_query: initial request from user
                                 # rows: SQL results
                                 # uses c-r-plus (model1)
                                 user_query,
                                 rows,
-                                model_list[1],
+                                llm2,
                             )
 
                             st.write("**AI explanation:**")

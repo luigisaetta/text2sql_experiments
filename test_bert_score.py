@@ -10,14 +10,17 @@ import bert_score
 
 from tqdm import tqdm
 
+from database_manager import DatabaseManager
+from llm_manager import LLMManager
 
 from core_functions import (
-    create_db_engine,
     get_formatted_schema,
-    generate_sql_query_with_models,
-    get_chat_models,
+    generate_sql_with_models,
 )
+from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
+from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE
+from config_private import COMPARTMENT_OCID
 
 
 def normalize_sql(input_sql):
@@ -46,10 +49,12 @@ logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 # SH schema
 # file with NL requests
 TESTS_FILE_NAME = "testsh50.txt"
-# TESTS_FILE_NAME = "testhr30.txt"
-# file with expected (golden) SQL
 GOLDEN_TRUTH_FILE = "golden_truth_sh50.txt"
+
+# TESTS_FILE_NAME = "testhr30.txt"
 # GOLDEN_TRUTH_FILE = "golden_truth_hr30.txt"
+# file with expected (golden) SQL
+
 
 # read list of NL requests
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
@@ -69,12 +74,15 @@ with open(GOLDEN_TRUTH_FILE, "r", encoding="UTF-8") as g_file:
 
 logger = get_console_logger()
 
-model_list = get_chat_models()
+db_manager = DatabaseManager(CONNECT_ARGS, logger)
+llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
 
-engine = create_db_engine()
+engine = db_manager.engine
+# 0 is llama3-70B
+llm1 = llm_manager.llm_models[0]
 
 # create the schema with Llama3
-SCHEMA = get_formatted_schema(engine, model_list[0])
+SCHEMA = get_formatted_schema(engine, llm1)
 
 # to limit how many we test
 TO_TEST = 50
@@ -94,18 +102,15 @@ total_length = min(len(USER_QUERIES), len(sql_queries))
 
 for user_query, sql_query in tqdm(zip(USER_QUERIES, sql_queries), total=total_length):
 
-    # what happens if generated query is wrong?
-    # it is checked internally in generate... call
-    # and if syntax is wrong it returns an empty string
-    sql_query_generated = generate_sql_query_with_models(
-        user_query, SCHEMA, engine, model_list
+    sql_query = generate_sql_with_models(
+        user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
     )
 
     # normalize the generated sql
     # remove newline -> single line
-    sql_query_generated = normalize_sql(sql_query_generated)
+    sql_query_normalized = normalize_sql(sql_query)
 
-    generated_sql_list.append(sql_query_generated)
+    generated_sql_list.append(sql_query_normalized)
 
 generated_sql_list = generated_sql_list[:TO_TEST]
 
