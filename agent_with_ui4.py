@@ -143,7 +143,7 @@ if submit_button and user_query:
 
                         with st.spinner("Interpreting results with AI..."):
                             # 9/9 (LS) changed prompt and model, now r-plus
-                            llm2 = llm_manager.llm_models[0]
+                            llm2 = llm_manager.get_llm_models()[1]
 
                             ai_explanation = explain_response(
                                 # user_query: initial request from user

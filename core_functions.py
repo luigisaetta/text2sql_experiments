@@ -7,7 +7,6 @@ several contributions to help increase accuracy
 
 import re
 
-from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.prompts import PromptTemplate
@@ -15,35 +14,9 @@ from langchain.prompts import PromptTemplate
 
 from prompt_template import REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
 from utils import get_console_logger
-from config import MODEL_LIST, ENDPOINT, TEMPERATURE, VERBOSE, DEBUG
-from config_private import COMPARTMENT_OCID
+from config import VERBOSE, DEBUG
 
 logger = get_console_logger()
-
-
-def get_chat_models():
-    """
-    Create a list with all models to be used to generate SQL
-
-    first is used model_list[0],. then if SQL syntax is wrong 1,
-    """
-    logger.info("")
-    logger.info("List of models used for SQL generation:")
-    for model_name in MODEL_LIST:
-        logger.info("- %s", model_name)
-    logger.info("")
-
-    chat_models = [
-        ChatOCIGenAI(
-            model_id=model,
-            service_endpoint=ENDPOINT,
-            compartment_id=COMPARTMENT_OCID,
-            model_kwargs={"temperature": TEMPERATURE, "max_tokens": 2048},
-        )
-        for model in MODEL_LIST
-    ]
-
-    return chat_models
 
 
 def format_schema(schema):

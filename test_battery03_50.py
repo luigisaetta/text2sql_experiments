@@ -12,18 +12,15 @@ from tqdm import tqdm
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 
-from core_functions import (
-    get_formatted_schema,
-    generate_sql_with_models,
-)
+from core_functions import generate_sql_with_models, get_formatted_schema
 from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
 from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE
 from config_private import DB_USER, COMPARTMENT_OCID
 
 # SH schema
-# TESTS_FILE_NAME = "testsh50.txt"
-TESTS_FILE_NAME = "testhr30.txt"
+TESTS_FILE_NAME = "testsh50.txt"
+# TESTS_FILE_NAME = "testhr30.txt"
 
 # Leggi il file riga per riga e carica ogni riga in una lista
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
@@ -39,11 +36,11 @@ logger.info("")
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
 llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
 
-engine = db_manager.engine
-# 0 is llama3-70B
-llm1 = llm_manager.llm_models[0]
-
-SCHEMA = get_formatted_schema(engine, llm1)
+SCHEMA = get_formatted_schema(
+    db_manager.engine,
+    # 0 is Llama3
+    llm_manager.get_llm_models()[0],
+)
 
 N_QUERIES = 0
 N_OK = 0

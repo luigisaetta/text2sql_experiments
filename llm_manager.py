@@ -25,8 +25,12 @@ class LLMManager:
         """
         Initialise the list of ChatModels to be used to generate SQL
         """
+        self.logger.info("LLMManager: Initialising the list of models...")
+
         models = []
         for model in self.model_list:
+            self.logger.info("Model: %s", model)
+
             models.append(
                 ChatOCIGenAI(
                     model_id=model,
@@ -36,6 +40,12 @@ class LLMManager:
                 )
             )
         return models
+
+    def get_llm_models(self):
+        """
+        return the list of initialised models
+        """
+        return self.llm_models
 
     def generate_sql(self, user_query, schema, llm, prompt_template):
         """
