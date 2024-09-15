@@ -6,6 +6,7 @@ from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain.prompts import PromptTemplate
 
 from core_functions import extract_sql_from_response
+from config import AUTH_TYPE
 
 
 class LLMManager:
@@ -33,6 +34,8 @@ class LLMManager:
 
             models.append(
                 ChatOCIGenAI(
+                    # modified to support no-default auth (inst_princ..)
+                    auth_type=AUTH_TYPE,
                     model_id=model,
                     service_endpoint=self.endpoint,
                     compartment_id=self.compartment_id,
@@ -47,17 +50,26 @@ class LLMManager:
         """
         return self.llm_models
 
-    def generate_sql(self, user_query, schema, llm, prompt_template):
+    def generate_sql(
+        self, user_query, schema, llm, prompt_template, user_group_id=None
+    ):
         """
         generate the SQL for a user request
+
+        user_group_id: integer identifying the group the user belongs to
+        to enable RBAC
         """
         try:
             prompt = PromptTemplate(
-                template=prompt_template, input_variables=["schema", "query"]
+                template=prompt_template,
+                input_variables=["schema", "query", "user_group_id"],
             )
             llm_chain = prompt | llm
 
-            response = llm_chain.invoke({"schema": schema, "query": user_query})
+            # added user_group_id for RBAC. Can be None
+            response = llm_chain.invoke(
+                {"schema": schema, "query": user_query, "user_group_id": user_group_id}
+            )
 
             sql_query = extract_sql_from_response(response.content)
 

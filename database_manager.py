@@ -65,7 +65,9 @@ class DatabaseManager:
         try:
             with self.engine.connect() as connection:
                 rows = connection.execute(text(sql_query)).mappings().all()
+
                 self.logger.info("Found %s rows..", len(rows))
+
                 return rows
         except SQLAlchemyError as db_err:
             self.logger.error("SQL query execution error: %s", db_err)

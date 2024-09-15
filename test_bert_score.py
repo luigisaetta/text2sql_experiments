@@ -62,11 +62,11 @@ logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 
 # SH schema
 # file with NL requests
-# TESTS_FILE_NAME = "testsh50.txt"
-# GOLDEN_TRUTH_FILE = "golden_truth_sh50.txt"
+TESTS_FILE_NAME = "testsh30_ita.txt"
+GOLDEN_TRUTH_FILE = "golden_truth_sh50.txt"
 
-TESTS_FILE_NAME = "testhr30.txt"
-GOLDEN_TRUTH_FILE = "golden_truth_hr30.txt"
+# TESTS_FILE_NAME = "testhr30.txt"
+# GOLDEN_TRUTH_FILE = "golden_truth_hr30.txt"
 # file with expected (golden) SQL
 
 
@@ -98,7 +98,7 @@ SCHEMA = get_formatted_schema(
 )
 
 # to limit how many we test
-TO_TEST = 50
+TO_TEST = 30
 
 # put the generated sql in this list
 generated_sql_list = []

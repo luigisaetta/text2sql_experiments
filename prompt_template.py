@@ -9,6 +9,11 @@ A SQL query has been executed to retrieve relevant data.
 Explain the provided data in a clear and human understandable format.
 Be assertive.
 Format response in markdown.
+
+## plotting instructions
+If the request asks for plotting the data generate the correct Python code
+to plot the data using matplotlib library.
+Align labels at 90 degrees.
  
  User request:
  {user_request}
@@ -17,6 +22,10 @@ Format response in markdown.
 
 # the list of few shot examples is here
 EXAMPLES = """"
+User query: give me examples of questions I can ask about our data
+SQL Query: SELECT t.table_name, c.column_name FROM user_tables t JOIN user_tab_columns c
+ON t.table_name = c.table_name ORDER BY t.table_name, c.column_id
+
 User Query: list top 10 sales give customer name and product name
 SQL Query: SELECT c.cust_first_name || ' ' || c.cust_last_name AS customer_name, p.prod_name AS product_name, s.quantity_sold, s.amount_sold 
 FROM sales s JOIN customers c ON s.cust_id = c.cust_id JOIN products p ON s.prod_id = p.prod_id ORDER BY s.amount_sold 
@@ -101,6 +110,8 @@ Don't use the LIMIT N clause, instead, replace it by FETCH FIRST N ROWS ONLY.
 Manage correcty dates using the TO_DATE function.
 Don't use the CONCAT function for string concatenation. Use instead the || operator.
 Enclose the SQL generated with triple backtick always.
+If the User Group Id has a value add the proper filter conditions to the query only for tables
+containing USER_GROUP_ID as a column.
 
 Examples:
 {EXAMPLES}
@@ -110,6 +121,9 @@ Schema:
 
 User Query:
 {{query}}
+
+User Group Id:
+{{user_group_id}}
 
 SQL Query:
 """
@@ -137,4 +151,28 @@ SQL query and error:
 {{sql_and_error}}
 
 Corrected SQL Query:
+"""
+
+PROMPT_TABLE_SUMMARY = """You are a data analyst that can help summarize SQL tables.
+
+Summarize below table by the given context.
+
+Table Schema
+{table_schema}
+
+Sample Queries
+{sample_queries}
+
+Response guideline
+ - You shall write the summary based only on provided information.
+ - Note that above sampled queries are only small sample of queries and thus not all possible use of tables are represented, 
+   and only some columns in the table are used.
+ - Do not use any adjective to describe the table. For example, the importance of the table, its comprehensiveness or 
+   if it is crucial, or who may be using it. For example, you can say that a table contains certain types of data, 
+   but you cannot say that the table contains a 'wealth' of data, or that it is 'comprehensive'.
+ - Do not mention about the sampled query. Only talk objectively about the type of data the table contains and its possible utilities.
+ - Please also include some potential usecases of the table, e.g. what kind of questions can be answered by the table, 
+ what kind of analysis can be done by the table, etc.
+
+ Table Summary:
 """
