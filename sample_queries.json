@@ -57,5 +57,41 @@
             "How many suppliers are there?",
             "How many supplier are TAX AUTHORITY?"
         ]
+    },
+    {
+        "table": "DEPARTMENTS",
+        "sample_queries": [
+            "How many departments are there?"
+        ]
+    },
+    {
+        "table": "EMPLOYEES",
+        "sample_queries": [
+            "How many employees are there?"
+        ]
+    },
+    {
+        "table": "HR_COUNTRIES",
+        "sample_queries": [
+            "In how many distinct countries are people working in our company located?"
+        ]
+    },
+    {
+        "table": "HR_REGIONS",
+        "sample_queries": [
+            "In how many distinct regions are people working in our company located?"
+        ]
+    },
+    {
+        "table": "JOBS",
+        "sample_queries": [
+            "Describe the table JOBS"
+        ]
+    },
+    {
+        "table": "LOCATIONS",
+        "sample_queries": [
+            "Describe the table LOCATIONS"
+        ]
     }
 ]

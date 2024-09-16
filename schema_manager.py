@@ -66,6 +66,8 @@ class SchemaManager:
             # init the vector store
             self.db = FAISS.from_documents(docs, embed_model)
 
+            logger.info("SchemaManager initialisation done!")
+
         except Exception as e:
             logger.error("Error in init Schema Manager !!!")
             logger.error(e)
@@ -152,22 +154,28 @@ class SchemaManager:
         self.logger.info("")
         self.logger.info("Reading sample queries...")
 
-        with open(SAMPLES_FILE, "r", encoding="UTF-8") as file:
-            data = json.load(file)
+        try:
+            with open(SAMPLES_FILE, "r", encoding="UTF-8") as file:
+                data = json.load(file)
 
-        # create a dictionary where key is table_name
-        # and value is a dict with one field: sample queries
-        tables_dict = {}
-        for element in data:
-            table_name = element.get("table")
-            if table_name:
-                # normalize in uppercase
-                table_name = table_name.upper()
-                tables_dict[table_name] = {
-                    "sample_queries": element.get("sample_queries")
-                }
+            # create a dictionary where key is table_name
+            # and value is a dict with one field: sample queries
+            tables_dict = {}
+            for element in data:
+                table_name = element.get("table")
+                if table_name:
+                    # normalize in uppercase
+                    table_name = table_name.upper()
+                    tables_dict[table_name] = {
+                        "sample_queries": element.get("sample_queries")
+                    }
 
-        self.logger.info("Reading and storing Sample queries OK...")
+            self.logger.info("Reading and storing Sample queries OK...")
+        except Exception as e:
+            self.logger.error("Error reading and storing sample queries...")
+            self.logger.error("Check file: %s", SAMPLES_FILE)
+            self.logger.error(e)
+            tables_dict = {}
 
         return tables_dict
 

@@ -12,7 +12,7 @@ DEBUG = False
 # LLM config
 ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 
-# 2/09 inverted the list, first Llama3
+# 2/09 inverted the list, first Llama3. Dont change the order
 MODEL_LIST = ["meta.llama-3-70b-instruct", "cohere.command-r-plus"]
 TEMPERATURE = 0
 
