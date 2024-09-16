@@ -39,7 +39,7 @@ class LLMManager:
                     model_id=model,
                     service_endpoint=self.endpoint,
                     compartment_id=self.compartment_id,
-                    model_kwargs={"temperature": self.temperature, "max_tokens": 2048},
+                    model_kwargs={"temperature": self.temperature, "max_tokens": 1024},
                 )
             )
         return models

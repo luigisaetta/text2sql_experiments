@@ -37,14 +37,10 @@ class SchemaManager:
         logger: Logger instance.
         """
         self.embed_model = embed_model
+        self.llm_manager = llm_manager
         self.logger = logger
 
-        # this is the prompt used to generate a summary for each table
-        # the summary is embedded
-        table_summary_prompt = PromptTemplate.from_template(PROMPT_TABLE_SUMMARY)
         llm1 = llm_manager.llm_models[0]
-
-        self.summary_chain = table_summary_prompt | llm1
 
         # init lists
         try:
@@ -101,17 +97,18 @@ class SchemaManager:
 
                         self.tables_list.append(table_name)
 
+                        # create the summary for the table
                         table_chunk = "CREATE TABLE " + table_chunk
                         self.tables_chunk.append(
                             {"table": table_name, "chunk": table_chunk}
                         )
 
-                        sample_queries = self.get_sample_queries(
-                            table_name, tables_dict
-                        )["sample_queries"]
+                        queries_list = self.get_sample_queries(table_name, tables_dict)
+                        # concatenate into a single string
+                        queries_string = "\n".join(queries_list)
 
                         summary = self._generate_table_summary(
-                            table_chunk, sample_queries
+                            table_chunk, queries_string
                         )
 
                         self.summaries.append(summary)
@@ -131,11 +128,15 @@ class SchemaManager:
         """
         Generates a summary for the given table using the LLM.
 
-        The summary is generetaed using:
+        The summary is genereted using:
         - the portion of the schema related to the table
-        - a slit of sample queries
+        - a list of sample queries
         """
-        result = self.summary_chain.invoke(
+        table_summary_prompt = PromptTemplate.from_template(PROMPT_TABLE_SUMMARY)
+        llm1 = self.llm_manager.llm_models[0]
+        summary_chain = table_summary_prompt | llm1
+
+        result = summary_chain.invoke(
             {
                 "table_schema": table_chunk,
                 "sample_queries": sample_queries,
@@ -177,7 +178,7 @@ class SchemaManager:
         table_name: the name of the table (UPPERCASE)
         data: the dictionary read from file samples_query.json
         """
-        return data.get(table_name, None)
+        return data.get(table_name, None)["sample_queries"]
 
     def _prepare_documents(self):
         """

@@ -1,0 +1,61 @@
+[
+    {
+        "table": "AP_INVOICES",
+        "sample_queries": [
+            "list top 5 invoices with highest amount",
+            "list top 10 invoices with highest amount.",
+            "show me invoice 908290"
+        ]
+    },
+    {
+        "table": "CHANNELS",
+        "sample_queries": [
+            "describe the channels table",
+            "list all the sales made by Direct Channels"
+        ]
+    },
+    {
+        "table": "COUNTRIES",
+        "sample_queries": [
+            "list the top 5 sales made in region Asia.",
+            "Show me the top products with total amount for sales made in region Europe.",
+            "List the product names, categories, customer names, and promotion names used for sales made in Europe.",
+            "Find the customer names and their cities who purchased products through the 'Tele Sales' channel and used promotions with a cost greater than 1000."
+        ]
+    },
+    {
+        "table": "CUSTOMERS",
+        "sample_queries": [
+            "list top 10 sales give customer name and product name.",
+            "List the product names, categories, customer names, and promotion names used for sales made in Europe."
+        ]
+    },
+    {
+        "table": "PRODUCTS",
+        "sample_queries": [
+            "Describe the products table.",
+            "List the product names, categories, customer names, and promotion names used for sales made in Europe."
+        ]
+    },
+    {
+        "table": "PROMOTIONS",
+        "sample_queries": [
+            "List the product names, categories, customer names, and promotion names used for sales made in Europe."
+        ]
+    },
+    {
+        "table": "SALES",
+        "sample_queries": [
+            "Get the list of promotion names, customer names, cities, and regions for each sale made in Europe.",
+            "describe the sales table, list all available columns.",
+            "list top 10 sales give customer name and product name"
+        ]
+    },
+    {
+        "table": "SUPPLIERS",
+        "sample_queries": [
+            "How many suppliers are there?",
+            "How many supplier are TAX AUTHORITY?"
+        ]
+    }
+]
