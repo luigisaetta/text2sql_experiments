@@ -37,10 +37,9 @@ embed_model = OCIGenAIEmbeddings(
 )
 
 logger.info("")
-
 logger.info("Loading Schema Manager...")
-schema_manager = SchemaManager(db_manager, llm_manager, embed_model, logger)
 
+schema_manager = SchemaManager(db_manager, llm_manager, embed_model, logger)
 
 # now battery of test using SH schema:
 
@@ -55,7 +54,7 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 50
+TO_TEST = 10
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:

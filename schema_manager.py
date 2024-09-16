@@ -29,8 +29,12 @@ class SchemaManager:
 
     def __init__(self, db_manager, llm_manager, embed_model, logger):
         """
+        Initializes the SchemaManager.
 
-        embed_model: the embedding model to be used
+        db_manager: Manages the database connection.
+        llm_manager: Manages the LLM models.
+        embed_model: Embedding model to be used.
+        logger: Logger instance.
         """
         self.embed_model = embed_model
         self.logger = logger
@@ -44,22 +48,44 @@ class SchemaManager:
 
         # init lists
         try:
-            engine = db_manager.engine
-
-            toolkit = SQLDatabaseToolkit(db=SQLDatabase(engine), llm=llm1)
-
             logger.info("Reading schema from DB...")
+            toolkit = SQLDatabaseToolkit(db=SQLDatabase(db_manager.engine), llm=llm1)
             raw_schema = toolkit.get_context()
 
+            # split the schema for tables
             tables = raw_schema["table_info"].split("CREATE TABLE")
 
-            # creating the lists
-            tables_dict = self.read_samples_query()
+            # create the structure with table_name, sample_queries
+            tables_dict = self._read_samples_query()
 
-            tables_list = []
+            # populate summaries and tables_list
+            self._process_schema(tables, tables_dict)
+
+            # sanity check
+            assert len(self.summaries) == len(self.tables_list)
+
+            # prepare the docs to be embedded
+            docs = self._prepare_documents()
+
+            # init the vector store
+            self.db = FAISS.from_documents(docs, embed_model)
+
+        except Exception as e:
+            logger.error("Error in init Schema Manager !!!")
+            logger.error(e)
+
+    def _process_schema(self, tables, tables_dict):
+        """
+        populate:
+        self.tables_list
+        self.tables_chunk
+        self.summaries
+        """
+        try:
+            self.tables_list = []
             # in this list we store the chunk of schema for each table
-            tables_chunk = []
-            summaries = []
+            self.tables_chunk = []
+            self.summaries = []
 
             for table_chunk in tables:
                 # check that it is not an empty string
@@ -71,58 +97,55 @@ class SchemaManager:
 
                         # normalize all table names in capital letters
                         table_name = table_name.upper()
+                        self.logger.info("Table name: %s", table_name)
 
-                        logger.info("Table name: %s", table_name)
-
-                        tables_list.append(table_name)
+                        self.tables_list.append(table_name)
 
                         table_chunk = "CREATE TABLE " + table_chunk
-                        tables_chunk.append({"table": table_name, "chunk": table_chunk})
+                        self.tables_chunk.append(
+                            {"table": table_name, "chunk": table_chunk}
+                        )
 
-                        entry_sample_queries = self.get_sample_queries(
+                        sample_queries = self.get_sample_queries(
                             table_name, tables_dict
-                        )
-                        sample_queries = entry_sample_queries["sample_queries"]
+                        )["sample_queries"]
 
-                        # invoke llm for generating the summary
-                        result = self.summary_chain.invoke(
-                            {
-                                "table_schema": table_chunk,
-                                "sample_queries": sample_queries,
-                            }
+                        summary = self._generate_table_summary(
+                            table_chunk, sample_queries
                         )
 
-                        summaries.append(result.content)
+                        self.summaries.append(summary)
 
                         if DEBUG:
-                            logger.info("Summary:")
-                            logger.info(result.content)
+                            self.logger.info("Summary:")
+                            self.logger.info(summary)
 
                     else:
-                        logger.error("Table name not found !")
+                        self.logger.error("Table name not found !")
 
         except Exception as e:
-            logger.error("Error in init Schema Manager !!!")
-            logger.error(e)
+            self.logger.error("Error in _process_schema...")
+            self.logger.error(e)
 
-        # sanity check
-        assert len(summaries) == len(tables_list)
-
-        self.tables_chunk = tables_chunk
-
-        # prepare the docs to be embedded
-        docs = []
-        for table_name, summary in zip(tables_list, summaries):
-            # this is the content embedded
-            content = table_name + "\nSummary:\n" + summary
-            docs.append(Document(page_content=content, metadata={"table": table_name}))
-
-        # init the vector store
-        self.db = FAISS.from_documents(docs, embed_model)
-
-    def read_samples_query(self):
+    def _generate_table_summary(self, table_chunk, sample_queries):
         """
-        read samples queries and stores in tables_dict
+        Generates a summary for the given table using the LLM.
+
+        The summary is generetaed using:
+        - the portion of the schema related to the table
+        - a slit of sample queries
+        """
+        result = self.summary_chain.invoke(
+            {
+                "table_schema": table_chunk,
+                "sample_queries": sample_queries,
+            }
+        )
+        return result.content
+
+    def _read_samples_query(self):
+        """
+        Reads sample queries from the JSON file.
         """
         # read the JSON file with sample queries
         self.logger.info("")
@@ -156,39 +179,46 @@ class SchemaManager:
         """
         return data.get(table_name, None)
 
-    def find_chunk_by_table_name(self, table_name):
+    def _prepare_documents(self):
         """
-        find the portion of schema associated to a table
+        Prepares documents containing table names and summaries for vector search.
+        """
+        docs = []
+        for table_name, summary in zip(self.tables_list, self.summaries):
+            # this is the content embedded
+            content = table_name + "\nSummary:\n" + summary
+            docs.append(Document(page_content=content, metadata={"table": table_name}))
+        return docs
+
+    def _find_chunk_by_table_name(self, table_name):
+        """
+        Finds the chunk of schema corresponding to the given table name.
         """
         # loop in the dictionary list
         for entry in self.tables_chunk:
             if entry["table"] == table_name:
                 return entry["chunk"]
-        # None if table_name is not found
         return None
 
     def get_restricted_schema(self, query):
         """
-        get the schema relevant for the user queries
+        Returns the portion of the schema relevant to the user query based on similarity search.
         """
 
         # find TOP_N table summaries closer to query
-        # this way we identify releavnt tables for the query
+        # this way we identify relevant tables for the query
         results = self.db.similarity_search(query, k=TOP_N)
 
         # now generate the portion of schema with the retrieved tables
         restricted_schema_parts = []
 
-        self.logger.info("Tables identified:")
-
+        self.logger.info("Identifying relevant tables for query...")
         for doc in results:
             table_name = doc.metadata.get("table")
-
             self.logger.info("Found table: %s", table_name)
 
             # retrieve the portion of schema relevant to the table
-            table_chunk = self.find_chunk_by_table_name(table_name)
-
+            table_chunk = self._find_chunk_by_table_name(table_name)
             if table_chunk:
                 restricted_schema_parts.append(table_chunk)
             else:
@@ -201,5 +231,4 @@ class SchemaManager:
 
         if DEBUG:
             self.logger.info(restricted_schema)
-
         return restricted_schema
