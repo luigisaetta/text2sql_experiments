@@ -51,6 +51,7 @@ class SchemaManager:
             # split the schema for tables
             tables = raw_schema["table_info"].split("CREATE TABLE")
 
+            # read the samples queries for each table and
             # create the structure with table_name, sample_queries
             tables_dict = self._read_samples_query()
 
@@ -186,7 +187,9 @@ class SchemaManager:
         table_name: the name of the table (UPPERCASE)
         data: the dictionary read from file samples_query.json
         """
-        return data.get(table_name, None)["sample_queries"]
+        if data.get(table_name, None) is not None:
+            return data.get(table_name, None)["sample_queries"]
+        return []
 
     def _prepare_documents(self):
         """
@@ -196,7 +199,15 @@ class SchemaManager:
         for table_name, summary in zip(self.tables_list, self.summaries):
             # this is the content embedded
             content = table_name + "\nSummary:\n" + summary
-            docs.append(Document(page_content=content, metadata={"table": table_name}))
+
+            # retrieve table_chunk
+            table_chunk = self._find_chunk_by_table_name(table_name)
+            # all data stored in Vector Store
+            doc = Document(
+                page_content=content,
+                metadata={"table": table_name, "table_chunk": table_chunk},
+            )
+            docs.append(doc)
         return docs
 
     def _find_chunk_by_table_name(self, table_name):
@@ -211,9 +222,8 @@ class SchemaManager:
 
     def get_restricted_schema(self, query):
         """
-        Returns the portion of the schema relevant to the user query based on similarity search.
+        Returns the portion of the schema relevant to the user query, based on similarity search.
         """
-
         # find TOP_N table summaries closer to query
         # this way we identify relevant tables for the query
         results = self.db.similarity_search(query, k=TOP_N)
@@ -226,8 +236,9 @@ class SchemaManager:
             table_name = doc.metadata.get("table")
             self.logger.info("Found table: %s", table_name)
 
-            # retrieve the portion of schema relevant to the table
-            table_chunk = self._find_chunk_by_table_name(table_name)
+            # retrieve the portion of schema for the table
+            table_chunk = doc.metadata.get("table_chunk")
+
             if table_chunk:
                 restricted_schema_parts.append(table_chunk)
             else:
