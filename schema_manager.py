@@ -41,10 +41,9 @@ class SchemaManager(ABC):
         self.llm_manager = llm_manager
         self.logger = logger
 
-
     @abstractmethod
     def init_schema_manager(self):
-        """"
+        """ "
         to be implemented
         """
         pass
@@ -107,7 +106,7 @@ class SchemaManager(ABC):
         """
         Generates a summary for the given table using the LLM.
 
-        The summary is genereted using:
+        The summary is generated using:
         - the portion of the schema related to the table
         - a list of sample queries
         """
@@ -201,6 +200,7 @@ class SchemaManager(ABC):
         """
         Returns the portion of the schema relevant to the user query, based on similarity search.
 
+        query: the user request in NL
+
         to be implemented
         """
-

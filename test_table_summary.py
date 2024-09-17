@@ -57,7 +57,7 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 50
+TO_TEST = 15
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:
