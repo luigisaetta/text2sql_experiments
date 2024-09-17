@@ -31,7 +31,6 @@ from config import (
     TEMPERATURE,
     EMBED_MODEL_NAME,
 )
-from config import DEBUG
 from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()
@@ -99,6 +98,8 @@ def init_session(db_manager, llm_manager):
             st.session_state.schema_manager = create_schema_manager(
                 db_manager, llm_manager
             )
+        logger.info("Ready !!!")
+        logger.info("")
 
 
 #

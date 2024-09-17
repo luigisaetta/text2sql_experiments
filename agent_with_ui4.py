@@ -29,7 +29,6 @@ from config import (
     ENDPOINT,
     TEMPERATURE,
 )
-from config import DEBUG
 from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()

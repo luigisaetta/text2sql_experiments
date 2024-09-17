@@ -31,23 +31,31 @@ embed_model = OCIGenAIEmbeddings(
     compartment_id=COMPARTMENT_OCID,
 )
 
-# the model that is used to generate summaries for tables
-llm1 = llm_manager.llm_models[0]
 
 logger.info("")
 logger.info("Loading Schema Manager...")
 
+# schema manager encapsulate the connection to vector store db
 schema_manager = SchemaManager23AI(db_manager, llm_manager, embed_model, logger)
 
-# reload the data
+# read the data from the data DB (using db_manager)
+# generate for each table a summary using LLM
+# embeds summary and store summary + embeddings + metadata
+# in 23AI Vector Store
 schema_manager.init_schema_manager()
 
-# do a test
-user_query = "list the top 5 sales by total amount"
-
-schema = schema_manager.get_restricted_schema(user_query)
-
-logger.info("User query: %s", user_query)
+logger.info("Loaded !!!")
 logger.info("")
+
+# do a test
+logger.info("Quick test...")
+logger.info("")
+USER_QUERY = "list the top 5 sales by total amount"
+
+logger.info("User query: %s", USER_QUERY)
+logger.info("")
+
+SCHEMA = schema_manager.get_restricted_schema(USER_QUERY)
+
 logger.info("Schema:")
-logger.info(schema)
+logger.info(SCHEMA)

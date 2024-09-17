@@ -10,8 +10,6 @@ number of tables is limited to TOP_N (see config)
 """
 
 from langchain_community.vectorstores import FAISS
-from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
 from schema_manager import SchemaManager
 from config import TOP_N, DEBUG
@@ -29,14 +27,9 @@ class SchemaManagerFaiss(SchemaManager):
         """
         # init lists
         try:
-            llm1 = self.llm_manager.llm_models[0]
-
             self.logger.info("Reading schema from DB...")
 
-            toolkit = SQLDatabaseToolkit(
-                db=SQLDatabase(self.db_manager.engine), llm=llm1
-            )
-            raw_schema = toolkit.get_context()
+            raw_schema = self._get_raw_schema()
 
             # split the schema for tables
             tables = raw_schema["table_info"].split("CREATE TABLE")

@@ -15,6 +15,8 @@ import json
 from abc import ABC, abstractmethod
 from langchain_core.prompts import PromptTemplate
 from langchain.docstore.document import Document
+from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
 from prompt_template import PROMPT_TABLE_SUMMARY
 from config import DEBUG
@@ -46,7 +48,17 @@ class SchemaManager(ABC):
         """ "
         to be implemented
         """
-        pass
+
+    def _get_raw_schema(self):
+        """
+        Connect to data DB and get raw DB schema
+        """
+        llm1 = self.llm_manager.llm_models[0]
+
+        toolkit = SQLDatabaseToolkit(db=SQLDatabase(self.db_manager.engine), llm=llm1)
+        raw_schema = toolkit.get_context()
+
+        return raw_schema
 
     def _process_schema(self, tables, tables_dict):
         """
