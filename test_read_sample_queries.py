@@ -25,9 +25,10 @@ print("")
 print(tables_dict)
 print("")
 
-table_name = "AP_INVOICES"
+TABLE_NAME = "AP_INVOICES"
 
-queries_list = tables_dict.get(table_name, None)["sample_queries"]
-queries_string = "\n".join(queries_list)
+print(TABLE_NAME)
+queries_list = tables_dict.get(TABLE_NAME, None)["sample_queries"]
+QUERIES_STRING = "\n".join(queries_list)
 
-print(queries_string)
+print(QUERIES_STRING)
