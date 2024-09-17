@@ -18,7 +18,9 @@ logger = get_console_logger()
 # Replace these with your actual Oracle connection details
 connection = oracledb.connect(**CONNECT_ARGS_VECTOR)
 
-# Prepare the insert statement
+# to clear the table before loading
+DELETE_QUERY = "DELETE FROM sample_queries"
+
 INSERT_QUERY = """
     INSERT INTO sample_queries (table_name, sample_query)
     VALUES (:table_name, :sample_query)
@@ -32,6 +34,10 @@ try:
     # Create a cursor
     cursor = connection.cursor()
 
+    # Delete all records from the table before inserting new ones
+    cursor.execute(DELETE_QUERY)
+    connection.commit()
+
     # Loop over the JSON data
     for entry in data:
         table_name = entry["table"]  # Get the table name
@@ -43,7 +49,6 @@ try:
                 INSERT_QUERY, {"table_name": table_name, "sample_query": query}
             )
 
-    # Commit the transaction
     connection.commit()
 
     logger.info("Data inserted successfully!")
