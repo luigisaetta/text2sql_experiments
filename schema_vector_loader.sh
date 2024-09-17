@@ -1,0 +1,2 @@
+python batch_load_vector_store_23ai.py
+
