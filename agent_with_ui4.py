@@ -1,5 +1,7 @@
 """
 SQL Agent prototype v 0.8: UI
+
+This version is using a static  schema
 """
 
 import streamlit as st

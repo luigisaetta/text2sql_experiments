@@ -1,5 +1,9 @@
 """"
 Load 23AI Vector Store for restricted schema
+
+This is the script to be used to do the first load of the SCHEMA_VECTORS
+(17/0) for now, no updates. If you change  the data schema or the sample_queries list
+you need to relaunch this script. It will drop and reload the collection
 """
 
 from langchain_community.embeddings import OCIGenAIEmbeddings
@@ -27,6 +31,7 @@ embed_model = OCIGenAIEmbeddings(
     compartment_id=COMPARTMENT_OCID,
 )
 
+# the model that is used to generate summaries for tables
 llm1 = llm_manager.llm_models[0]
 
 logger.info("")
