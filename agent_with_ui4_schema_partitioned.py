@@ -12,7 +12,7 @@ from sqlalchemy import text
 from langchain_community.embeddings import OCIGenAIEmbeddings
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
-from schema_manager import SchemaManager
+from schema_manager_23ai import SchemaManager23AI
 from user_profile_manager import ProfileManager
 
 
@@ -78,7 +78,7 @@ def create_schema_manager(_db_manager, _llm_manager):
         service_endpoint=ENDPOINT,
         compartment_id=COMPARTMENT_OCID,
     )
-    schema_manager = SchemaManager(_db_manager, _llm_manager, embed_model, logger)
+    schema_manager = SchemaManager23AI(_db_manager, _llm_manager, embed_model, logger)
 
     if schema_manager is None:
         st.error("Error setting up SchemaManager")
