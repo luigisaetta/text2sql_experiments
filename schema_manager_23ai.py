@@ -83,6 +83,47 @@ class SchemaManager23AI(SchemaManager):
 
         return conn
 
+    def _read_samples_query(self):
+        """
+        Reads sample queries from the DB file.
+        """
+        self.logger.info("")
+        self.logger.info("Reading sample queries...")
+
+        SELECT_QUERY = "SELECT table_name, sample_query FROM sample_queries"
+
+        try:
+            conn = self._get_db_connection()
+
+            cursor = conn.cursor()
+
+            cursor.execute(SELECT_QUERY)
+
+            # Create the target structure
+            tables_dict = {}
+
+            # loop over all rows
+            for table_name, sample_query in cursor:
+                # Normalize table name in upper case
+                table_name = table_name.upper()
+
+                # add sample query in the list in dictiornary
+                if table_name in tables_dict:
+                    tables_dict[table_name]["sample_queries"].append(sample_query)
+                else:
+                    tables_dict[table_name] = {"sample_queries": [sample_query]}
+
+            self.logger.info("Reading and storing Sample queries OK...")
+
+        except oracledb.DatabaseError as e:
+            self.logger.info("Error during reading sample queries from DB: %s", e)
+            tables_dict = {}
+        finally:
+            cursor.close()
+            conn.close
+
+        return tables_dict
+
     def get_restricted_schema(self, query):
         """
         Returns the portion of the schema relevant to the user query, based on similarity search.
