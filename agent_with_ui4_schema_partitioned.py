@@ -105,6 +105,8 @@ def init_session(db_manager, llm_manager):
 #
 # Main
 #
+# Streamlit UI
+st.title("Oracle SQL Agent V2 Chat Interface")
 
 # Sidebar options for model selection
 st.sidebar.title("Features selection")
@@ -132,7 +134,6 @@ else:
     user_profile = None
     group_id = None
 
-
 # Create the database engine once and cache it
 db_manager = create_cached_db_manager()
 
@@ -141,8 +142,6 @@ llm_manager = create_cached_llm_manager()
 # here we get the schema and cache in session
 init_session(db_manager, llm_manager)
 
-# Streamlit UI
-st.title("Oracle GenAI SQL Chat Interface")
 
 # Create a form to handle the input and button together
 with st.form(key="query_form"):
