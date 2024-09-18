@@ -38,6 +38,8 @@ try:
     cursor.execute(DELETE_QUERY)
     connection.commit()
 
+    logger.info("Deleted old data...")
+
     # Loop over the JSON data
     for entry in data:
         table_name = entry["table"]  # Get the table name

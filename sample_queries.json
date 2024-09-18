@@ -61,37 +61,44 @@
     {
         "table": "DEPARTMENTS",
         "sample_queries": [
-            "How many departments are there?"
+            "How many departments are there?",
+            "List the department names and the number of employees in each department."
         ]
     },
     {
         "table": "EMPLOYEES",
         "sample_queries": [
-            "How many employees are there?"
+            "How many employees are there?",
+            "List the department names and the number of employees in each department."
         ]
     },
     {
         "table": "HR_COUNTRIES",
         "sample_queries": [
-            "In how many distinct countries are people working in our company located?"
+            "In how many distinct countries are people working in our company located?",
+            "Get the list of countries in the 'Europe' region along with their cities.",
+            "Get the list of cities along with their corresponding country names."
         ]
     },
     {
         "table": "HR_REGIONS",
         "sample_queries": [
-            "In how many distinct regions are people working in our company located?"
+            "In how many distinct regions are people working in our company located?",
+            "Get the list of countries in the 'Europe' region along with their cities."
         ]
     },
     {
         "table": "JOBS",
         "sample_queries": [
-            "Describe the table JOBS"
+            "Describe the table JOBS",
+            "List the job titles and the number of employees who have a commission_pct greater than 0."
         ]
     },
     {
         "table": "LOCATIONS",
         "sample_queries": [
-            "Describe the table LOCATIONS"
+            "Describe the table LOCATIONS",
+            "Retrieve the names of all departments located in 'Tokyo'."
         ]
     }
 ]

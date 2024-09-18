@@ -6,7 +6,7 @@ from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain.prompts import PromptTemplate
 
 from core_functions import extract_sql_from_response
-from config import AUTH_TYPE
+from config import AUTH_TYPE, MAX_TOKENS
 
 
 class LLMManager:
@@ -39,7 +39,10 @@ class LLMManager:
                     model_id=model,
                     service_endpoint=self.endpoint,
                     compartment_id=self.compartment_id,
-                    model_kwargs={"temperature": self.temperature, "max_tokens": 1024},
+                    model_kwargs={
+                        "temperature": self.temperature,
+                        "max_tokens": MAX_TOKENS,
+                    },
                 )
             )
         return models

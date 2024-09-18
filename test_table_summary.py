@@ -57,20 +57,20 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 15
+TO_TEST = 50
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:
     logger.info("User query: %s", query)
 
-    restricted_schema = schema_manager.get_restricted_schema(query)
+    RESTRICTED_SCHEMA = schema_manager.get_restricted_schema(query)
 
     if DEBUG:
-        logger.info(restricted_schema)
+        logger.info(RESTRICTED_SCHEMA)
 
     # generate SQL
     sql_query = generate_sql_with_models(
-        query, restricted_schema, db_manager, llm_manager, PROMPT_TEMPLATE
+        query, RESTRICTED_SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
     )
 
     # generate_sql_with_model check the syntax

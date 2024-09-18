@@ -1,0 +1,4 @@
+# query for a quick demo on SH schema
+list all the available entities with the number of rows
+List the customer name, product names and subcategories for sales made through promotions with a cost less than 500. Get only first 60 rows
+

@@ -1,7 +1,7 @@
 """
 public configurations
 
-changed: 9/9/2024, pnly private config (pwd) left in config_private
+changed: 9/9/2024, only private config (pwd) left in config_private
 """
 
 # embed private config
@@ -27,6 +27,7 @@ ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 # 2/09 inverted the list, first Llama3. Don't change the order
 MODEL_LIST = ["meta.llama-3-70b-instruct", "cohere.command-r-plus"]
 TEMPERATURE = 0
+MAX_TOKENS = 1024
 
 # the way we handle auth for GenAI
 AUTH_TYPE = "API_KEY"
@@ -34,7 +35,8 @@ AUTH_TYPE = "API_KEY"
 # for embeddings
 EMBED_MODEL_NAME = "cohere.embed-english-v3.0"
 
-# DB config
+# here we consolidate in a single structure configs to access DB
+# data DB config
 WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
 
 CONNECT_ARGS = {
@@ -46,7 +48,7 @@ CONNECT_ARGS = {
     "wallet_password": WALLET_PWD,
 }
 
-# for VECTOR DB
+# for VECTOR DB config
 VECTOR_WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_VECTOR"
 
 CONNECT_ARGS_VECTOR = {
@@ -57,7 +59,7 @@ CONNECT_ARGS_VECTOR = {
     "wallet_location": VECTOR_WALLET_DIR,
     "wallet_password": VECTOR_WALLET_PWD,
 }
-# the name of the table where westore tables summary and embeddings
+# the name of the table where we store tables summary and embeddings
 VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
 
 # if True add the AI explanation

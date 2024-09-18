@@ -4,13 +4,19 @@ Test read samples query from DB
 
 import oracledb
 
+from utils import get_console_logger
 from config import CONNECT_ARGS_VECTOR
+
+logger = get_console_logger()
 
 # Connessione al database Oracle
 connection = oracledb.connect(**CONNECT_ARGS_VECTOR)
 
 # Query per ottenere i dati dalla tabella sample_queries
 SELECT_QUERY = "SELECT table_name, sample_query FROM sample_queries"
+
+logger.info("")
+logger.info("Loading samples queries from DB...")
 
 try:
     # Creazione del cursore

@@ -16,7 +16,7 @@ List the product category names customer names and promotion names used for each
 Find the customer names cities and promotion names for sales that occurred in the 'Indirect' channel.
 Get the list of sales including product names categories and customer regions for sales with an amount greater than 1000.
 Find the product names and promotions used for those products sold in the 'Catalog' channel.
-List the customer names product names and subcategories for sales made through promotions with a cost less than 500. Get only firt 60 rows
+List the customer names product names and subcategories for sales made through promotions with a cost less than 500. Get only first 60 rows
 Find the customer names cities product categories and promotion names for sales that occurred in 1999.
 Get the list of customers their income levels product names purchased and sales channels used.
 Find the promotion names sales channel names and product names sold in Asia through these promotions.

@@ -1,0 +1,30 @@
+Recupera i nomi dei prodotti e la quantità totale venduta per ciascun prodotto.
+Elenca i nomi dei prodotti, le categorie dei prodotti e i canali di vendita utilizzati dai clienti provenienti dall'Italia.
+Trova i nomi dei clienti, i prodotti acquistati e le promozioni utilizzate dai clienti nel canale 'Catalogo'.
+Ottieni l'elenco delle vendite, inclusi i nomi dei prodotti, i nomi dei clienti e le regioni dei clienti per gli acquisti effettuati nel 1998.
+Elenca i nomi delle promozioni, i nomi dei clienti e le città dei clienti che hanno utilizzato queste promozioni. Limita ai primi 50 risultati.
+Trova i nomi dei prodotti, le sottocategorie e i nomi delle promozioni utilizzate per i prodotti venduti in Asia.
+Ottieni l'elenco dei clienti, i prodotti acquistati e i canali di vendita per le vendite avvenute nell'estate del 1998.
+Trova i nomi dei clienti e le loro città che hanno acquistato prodotti attraverso il canale 'Tele Sales' e hanno utilizzato promozioni con un costo superiore a 1000.
+Trova i nomi delle promozioni, le categorie delle promozioni e le città dei clienti che hanno partecipato a queste promozioni. Limita ai primi 50 risultati.
+Ottieni l'elenco dei clienti, i nomi dei prodotti, i nomi dei canali di vendita e i nomi delle promozioni utilizzate per ciascuna vendita nel 1998. Limita ai primi 50 risultati.
+Elenca i nomi dei clienti, i loro livelli di reddito e i prodotti acquistati dai clienti provenienti dal Giappone.
+Trova i nomi delle categorie di prodotti, le regioni dei clienti e i nomi dei canali di vendita per le vendite effettuate tramite il canale 'Direct Sales'.
+Ottieni l'elenco delle promozioni, i nomi dei prodotti, le regioni dei clienti e i nomi dei canali di vendita utilizzati per ciascuna vendita. Ottieni solo i primi 30 risultati.
+Trova i nomi dei prodotti, le sottocategorie, i nomi dei clienti e le città dei clienti che hanno acquistato questi prodotti. Ottieni solo i primi 30 risultati.
+Elenca i nomi delle categorie di prodotti, i nomi dei clienti e i nomi delle promozioni utilizzate per ciascuna vendita effettuata in Europa.
+Trova i nomi dei clienti, le città e i nomi delle promozioni per le vendite che si sono verificate nel canale 'Indiretto'.
+Ottieni l'elenco delle vendite, inclusi i nomi dei prodotti, le categorie e le regioni dei clienti per le vendite con un importo superiore a 1000.
+Trova i nomi dei prodotti e le promozioni utilizzate per quei prodotti venduti nel canale 'Catalogo'.
+Elenca i nomi dei clienti, i nomi dei prodotti e le sottocategorie per le vendite effettuate attraverso promozioni con un costo inferiore a 500. Ottieni solo i primi 60 risultati.
+Trova i nomi dei clienti, le città, le categorie di prodotti e i nomi delle promozioni per le vendite che si sono verificate nel 1999.
+Ottieni l'elenco dei clienti, i loro livelli di reddito, i nomi dei prodotti acquistati e i canali di vendita utilizzati.
+Trova i nomi delle promozioni, i nomi dei canali di vendita e i nomi dei prodotti venduti in Asia tramite queste promozioni.
+Elenca i nomi dei clienti, le loro città e i nomi delle categorie di prodotti acquistati tramite il canale 'Tele Sales'.
+Trova i nomi dei prodotti e le città dei clienti che hanno acquistato questi prodotti tramite promozioni attive prima del 1998.
+Ottieni l'elenco dei nomi dei prodotti, le loro categorie, i nomi dei clienti e i canali di vendita utilizzati.
+Trova i nomi delle promozioni, le sottocategorie, le città dei clienti e i canali di vendita utilizzati per ciascuna vendita.
+Elenca i nomi dei prodotti, le categorie, le regioni dei clienti e i nomi delle promozioni per le vendite effettuate in Nord America.
+Trova i nomi dei clienti, i loro redditi, le città e i nomi dei prodotti acquistati tramite il canale 'Vendite Dirette'.
+Ottieni l'elenco dei nomi delle promozioni, dei nomi dei clienti, delle città e delle regioni per ciascuna vendita effettuata in Europa.
+Trova i nomi dei prodotti, le loro sottocategorie e i nomi delle promozioni per le vendite che si sono verificate nel canale 'Catalog'.
