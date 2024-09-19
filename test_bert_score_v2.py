@@ -19,7 +19,7 @@ from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
 
-from core_functions import generate_sql_with_models, get_formatted_schema
+from core_functions import generate_sql_with_models
 from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
 from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, EMBED_MODEL_NAME

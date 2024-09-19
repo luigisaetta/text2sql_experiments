@@ -36,9 +36,11 @@ class DatabaseManager:
             return engine
 
         except SQLAlchemyError as db_err:
+            self.logger.error("Error in DatabaseManager:create_engine...")
             self.logger.error("Database connection failed: %s", db_err)
             return None
         except Exception as e:
+            self.logger.error("Error in DatabaseManager:create_engine...")
             self.logger.error("Generic Error setting up SQLDatabase: %s", e)
             return None
 
@@ -52,9 +54,11 @@ class DatabaseManager:
             return True
 
         except SQLAlchemyError as db_err:
+            self.logger.error("Error in DatabaseManager:test_query_sintax...")
             self.logger.error("SQL query syntax error: %s", db_err)
             return False
         except Exception as e:
+            self.logger.error("Error in DatabaseManager:test_query_sintax...")
             self.logger.error("SQL query generic error: %s", e)
             return False
 
@@ -70,8 +74,10 @@ class DatabaseManager:
 
                 return rows
         except SQLAlchemyError as db_err:
+            self.logger.error("Error in DatabaseManager:execute_sql...")
             self.logger.error("SQL query execution error: %s", db_err)
             return None
         except Exception as e:
+            self.logger.error("Error in DatabaseManager:execute_sql...")
             self.logger.error("Generic Error executing SQL query: %s", e)
             return None

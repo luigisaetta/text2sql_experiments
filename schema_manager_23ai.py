@@ -12,10 +12,15 @@ number of tables is limited to TOP_N (see config)
 
 import oracledb
 from langchain_community.vectorstores.oraclevs import OracleVS
-from langchain_community.vectorstores.utils import DistanceStrategy
 
 from schema_manager import SchemaManager
-from config import TOP_N, DEBUG, CONNECT_ARGS_VECTOR, VECTOR_TABLE_NAME
+from config import (
+    TOP_N,
+    DEBUG,
+    CONNECT_ARGS_VECTOR,
+    VECTOR_TABLE_NAME,
+    DISTANCE_STRATEGY,
+)
 
 
 class SchemaManager23AI(SchemaManager):
@@ -24,6 +29,9 @@ class SchemaManager23AI(SchemaManager):
     """
 
     # init defined in the superclass
+
+    # the table where we store a list of user_queries for each table in the data schema
+    TABLE_NAME_SQ = "sample_queries"
 
     def init_schema_manager(self):
         """
@@ -64,7 +72,7 @@ class SchemaManager23AI(SchemaManager):
                 self.embed_model,
                 table_name=VECTOR_TABLE_NAME,
                 client=conn,
-                distance_strategy=DistanceStrategy.COSINE,
+                distance_strategy=DISTANCE_STRATEGY,
             )
 
             self.logger.info("SchemaManager initialisation done!")
@@ -72,8 +80,11 @@ class SchemaManager23AI(SchemaManager):
             conn.close()
 
         except Exception as e:
+            self.logger.error("Error in SchemaManager:init_schema_manager...")
             self.logger.error("Error in init Schema Manager !!!")
             self.logger.error(e)
+        finally:
+            self._close_connection(conn)
 
     def _get_db_connection(self):
         """
@@ -83,21 +94,34 @@ class SchemaManager23AI(SchemaManager):
 
         return conn
 
+    def _close_connection(self, conn):
+        """
+        close properly the conn
+
+        yes, it is annoying, but we need to do this way
+        """
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            # ignore, connection is closed
+            pass
+
     def _read_samples_query(self):
         """
-        Reads sample queries from the DB file.
+        Reads sample queries from the DB.
         """
         self.logger.info("")
         self.logger.info("Reading sample queries...")
 
-        SELECT_QUERY = "SELECT table_name, sample_query FROM sample_queries"
+        select_query = f"SELECT table_name, sample_query FROM {self.TABLE_NAME_SQ}"
 
         try:
             conn = self._get_db_connection()
 
             cursor = conn.cursor()
 
-            cursor.execute(SELECT_QUERY)
+            cursor.execute(select_query)
 
             # Create the target structure
             tables_dict = {}
@@ -116,11 +140,13 @@ class SchemaManager23AI(SchemaManager):
             self.logger.info("Reading and storing Sample queries OK...")
 
         except oracledb.DatabaseError as e:
-            self.logger.info("Error during reading sample queries from DB: %s", e)
+            self.logger.error("Error in SchemaManager:read_samples_query...")
+            self.logger.error("Error during reading sample queries from DB: %s", e)
             tables_dict = {}
         finally:
-            cursor.close()
-            conn.close
+            if cursor:
+                cursor.close()
+            self._close_connection(conn)
 
         return tables_dict
 
@@ -139,7 +165,7 @@ class SchemaManager23AI(SchemaManager):
                 conn,
                 self.embed_model,
                 table_name=VECTOR_TABLE_NAME,
-                distance_strategy=DistanceStrategy.COSINE,
+                distance_strategy=DISTANCE_STRATEGY,
             )
 
             results = v_store.similarity_search(query, k=TOP_N)
@@ -170,8 +196,11 @@ class SchemaManager23AI(SchemaManager):
             if DEBUG:
                 self.logger.info(restricted_schema)
         except Exception as e:
-            self.logger.error("Error in get_restricted_schema...")
+            self.logger.error("Error in SchemaManager:get_restricted_schema...")
             self.logger.error(e)
             restricted_schema = ""
+        finally:
+            # This block will always execute, so we ensure the connection is closed
+            self._close_connection(conn)
 
         return restricted_schema

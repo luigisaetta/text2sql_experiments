@@ -4,6 +4,8 @@ public configurations
 changed: 9/9/2024, only private config (pwd) left in config_private
 """
 
+from langchain_community.vectorstores.utils import DistanceStrategy
+
 # embed private config
 from config_private import (
     # data schema
@@ -36,7 +38,7 @@ AUTH_TYPE = "API_KEY"
 EMBED_MODEL_NAME = "cohere.embed-english-v3.0"
 
 # here we consolidate in a single structure configs to access DB
-# data DB config
+# data DB config: this is to connect the data schema
 WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
 
 CONNECT_ARGS = {
@@ -48,7 +50,9 @@ CONNECT_ARGS = {
     "wallet_password": WALLET_PWD,
 }
 
-# for VECTOR DB config
+# for VECTOR DB config: this is to connect to the vector store schema
+# could be the same or a nother wallet, depends on DB used.
+# DB_USER is different !!! Don't put the VECTORS in the data schema
 VECTOR_WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_VECTOR"
 
 CONNECT_ARGS_VECTOR = {
@@ -61,6 +65,8 @@ CONNECT_ARGS_VECTOR = {
 }
 # the name of the table where we store tables summary and embeddings
 VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
+# the strategy for similarity search Don't change
+DISTANCE_STRATEGY = DistanceStrategy.COSINE
 
 # if True add the AI explanation
 ENABLE_AI_EXPLANATION = True
@@ -68,6 +74,7 @@ ENABLE_AI_EXPLANATION = True
 # parameters for schema partitioning
 # number of tables identified to satisfy the query
 # with similarity search
+# for now we support only join max 6 tables...
 TOP_N = 6
 
 # for REST API

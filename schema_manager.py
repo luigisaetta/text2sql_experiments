@@ -60,6 +60,22 @@ class SchemaManager(ABC):
 
         return raw_schema
 
+    def _remove_compress_line(self, chunk):
+        """ "
+        remove the line containing COMPRESS FOR...
+        to reduce prompt length
+        """
+        # Split the string into lines
+        lines = chunk.splitlines()
+
+        # Filter out the line containing "COMPRESS"
+        lines = [line for line in lines if "COMPRESS" not in line]
+
+        # Join the lines back into a single string
+        updated_chunk = "\n".join(lines)
+
+        return updated_chunk
+
     def _process_schema(self, tables, tables_dict):
         """
         populate:
@@ -88,6 +104,10 @@ class SchemaManager(ABC):
                         self.tables_list.append(table_name)
 
                         # create the summary for the table
+
+                        # remove not needed line (see above)
+                        table_chunk = self._remove_compress_line(table_chunk)
+
                         table_chunk = "CREATE TABLE " + table_chunk
                         self.tables_chunk.append(
                             {"table": table_name, "chunk": table_chunk}

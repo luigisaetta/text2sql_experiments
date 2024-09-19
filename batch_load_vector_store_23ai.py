@@ -55,6 +55,7 @@ USER_QUERY = "list the top 5 sales by total amount"
 logger.info("User query: %s", USER_QUERY)
 logger.info("")
 
+# get the schema for the user request
 SCHEMA = schema_manager.get_restricted_schema(USER_QUERY)
 
 logger.info("Schema:")
