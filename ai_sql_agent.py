@@ -42,6 +42,7 @@ class AISQLAgent:
             embed_model_name (str): Embedding model name.
             temperature (float): Temperature setting for the LLM manager.
             prompt_template (str): Template for generating SQL queries.
+
         """
         # store information needed
         self.connect_args = connect_args
@@ -110,7 +111,7 @@ class AISQLAgent:
 
         return restricted_schema
 
-    def generate_sql_query(self, user_request):
+    def generate_sql_query(self, user_request, user_group_id=None):
         """
         Generate the SQL query based on the user request and restricted schema.
 
@@ -130,6 +131,7 @@ class AISQLAgent:
             self.db_manager,
             self.llm_manager,
             self.prompt_template,
+            user_group_id,
         )
         self.logger.info("SQL query generated.")
 

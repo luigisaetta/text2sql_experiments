@@ -2,14 +2,10 @@
 Test Table Summary
 
 16/09: modified to use 23AI VS
+19/09: modified to use AISQLAgent class
 """
 
-from langchain_community.embeddings import OCIGenAIEmbeddings
-
-from database_manager import DatabaseManager
-from llm_manager import LLMManager
-from schema_manager_23ai import SchemaManager23AI
-from core_functions import generate_sql_with_models
+from ai_sql_agent import AISQLAgent
 from utils import get_console_logger
 from prompt_template import PROMPT_TEMPLATE
 
@@ -18,7 +14,6 @@ from config import (
     MODEL_LIST,
     ENDPOINT,
     TEMPERATURE,
-    DEBUG,
     EMBED_MODEL_NAME,
 )
 from config_private import COMPARTMENT_OCID
@@ -29,24 +24,22 @@ from config_private import COMPARTMENT_OCID
 #
 logger = get_console_logger()
 
-db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
-
-embed_model = OCIGenAIEmbeddings(
-    model_id=EMBED_MODEL_NAME,
-    service_endpoint=ENDPOINT,
-    compartment_id=COMPARTMENT_OCID,
+# init SQL Agent only once
+ai_sql_agent = AISQLAgent(
+    CONNECT_ARGS,
+    MODEL_LIST,
+    ENDPOINT,
+    COMPARTMENT_OCID,
+    EMBED_MODEL_NAME,
+    TEMPERATURE,
+    PROMPT_TEMPLATE,
 )
 
-logger.info("")
-logger.info("Loading Schema Manager...")
-
-schema_manager = SchemaManager23AI(db_manager, llm_manager, embed_model, logger)
-
 # now battery of test using SH schema:
-
 TESTS_FILE_NAME = "testsh50.txt"
 # TESTS_FILE_NAME = "testhr30.txt"
+# TESTS_FILE_NAME = "testhr_problems.txt"
+# TESTS_FILE_NAME = "testsh30_ita.txt"
 
 # read the file with users requests
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
@@ -57,21 +50,14 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 50
+TO_TEST = 30
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:
     logger.info("User query: %s", query)
 
-    RESTRICTED_SCHEMA = schema_manager.get_restricted_schema(query)
-
-    if DEBUG:
-        logger.info(RESTRICTED_SCHEMA)
-
     # generate SQL
-    sql_query = generate_sql_with_models(
-        query, RESTRICTED_SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
-    )
+    sql_query = ai_sql_agent.generate_sql_query(query)
 
     # generate_sql_with_model check the syntax
     # if syntax is wrong return empty string

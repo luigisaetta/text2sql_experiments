@@ -24,16 +24,18 @@ if __name__ == "__main__":
     # Some user requests to test on SH and AP_INVOICES
     user_requests = [
         "List the available tables",
+        "give me examples of questions I can ask about our data",
         "List the top 10 sales by total amount, with product name, customer name, country name for sales in Europe",
         "Show me invoice 123456",
-        "show me the list of first 10 professors teaching in the school",
+        "List all the departments with the number of empoyee for departments",
     ]
 
     for user_request in user_requests:
         print("")
         print("User request: ", user_request)
         # Generate SQL query
-        sql_query = ai_sql_agent.generate_sql_query(user_request)
+        # not using RBAC
+        sql_query = ai_sql_agent.generate_sql_query(user_request, user_group_id=None)
 
         print("Generated SQL Query:")
         print(sql_query)

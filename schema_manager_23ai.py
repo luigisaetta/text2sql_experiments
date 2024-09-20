@@ -15,7 +15,7 @@ from langchain_community.vectorstores.oraclevs import OracleVS
 
 from schema_manager import SchemaManager
 from config import (
-    TOP_N,
+    TOP_K,
     DEBUG,
     CONNECT_ARGS_VECTOR,
     VECTOR_TABLE_NAME,
@@ -168,7 +168,8 @@ class SchemaManager23AI(SchemaManager):
                 distance_strategy=DISTANCE_STRATEGY,
             )
 
-            results = v_store.similarity_search(query, k=TOP_N)
+            # get TOP_K tables
+            results = v_store.similarity_search(query, k=TOP_K)
 
             conn.close()
 
@@ -195,6 +196,13 @@ class SchemaManager23AI(SchemaManager):
 
             if DEBUG:
                 self.logger.info(restricted_schema)
+
+            if len(restricted_schema) > 0:
+                top_n_list = self._rerank_table_list(query, restricted_schema)
+                self.logger.info("Reranker result:")
+                self.logger.info(top_n_list)
+                self.logger.info("")
+
         except Exception as e:
             self.logger.error("Error in SchemaManager:get_restricted_schema...")
             self.logger.error(e)

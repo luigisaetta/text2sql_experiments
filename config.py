@@ -24,12 +24,19 @@ VERBOSE = True
 DEBUG = False
 
 # LLM config
-ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
+# ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
+ENDPOINT = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
 
 # 2/09 inverted the list, first Llama3. Don't change the order
-MODEL_LIST = ["meta.llama-3-70b-instruct", "cohere.command-r-plus"]
+# 19/09 removed llama 3 replaced with 3.1
+# MODEL_LIST = ["meta.llama-3.1-70b-instruct", "cohere.command-r-plus"]
+MODEL_LIST = [
+    "meta.llama-3.1-70b-instruct",
+    "meta.llama-3.1-405b-instruct",
+    "cohere.command-r-plus",
+]
 TEMPERATURE = 0
-MAX_TOKENS = 1024
+MAX_TOKENS = 2048
 
 # the way we handle auth for GenAI
 AUTH_TYPE = "API_KEY"
@@ -75,7 +82,10 @@ ENABLE_AI_EXPLANATION = True
 # number of tables identified to satisfy the query
 # with similarity search
 # for now we support only join max 6 tables...
+TOP_K = 8
+# top_n after reranking
 TOP_N = 6
+ENABLE_RERANKING = True
 
 # for REST API
 PORT = 8888

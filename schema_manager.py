@@ -18,8 +18,8 @@ from langchain.docstore.document import Document
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
-from prompt_template import PROMPT_TABLE_SUMMARY
-from config import DEBUG
+from prompt_template import PROMPT_TABLE_SUMMARY, PROMPT_RERANK
+from config import DEBUG, TOP_N
 
 SAMPLES_FILE = "sample_queries.json"
 
@@ -236,3 +236,28 @@ class SchemaManager(ABC):
 
         to be implemented
         """
+
+    def _rerank_table_list(self, query, top_k_schemas):
+        """
+        Get TOP_N tables from step1 in schema selection and use an LLM
+        to rerank the TOP_N
+
+        query: user query in NL
+        top_k_schemas: schemas for top_k tables
+        produce a restricted TOP_N list
+        """
+        # to be implemented and plugged in get_restricted schema
+        table_select_prompt = PromptTemplate.from_template(PROMPT_RERANK)
+
+        llm1 = self.llm_manager.llm_models[0]
+        rerank_chain = table_select_prompt | llm1
+
+        result = rerank_chain.invoke(
+            {
+                "top_n": TOP_N,
+                "table_schemas": top_k_schemas,
+                "question": query,
+            }
+        )
+
+        return result.content

@@ -159,7 +159,7 @@ if submit_button and user_query:
         if user_profile.get_user_group_id() is not None:
             group_id = user_profile.get_user_group_id()
 
-    # gest restricteed schema for the given user_query
+    # get restricteed schema for the given user_query
     restricted_schema = st.session_state.schema_manager.get_restricted_schema(
         user_query
     )
@@ -202,6 +202,7 @@ if submit_button and user_query:
 
                         with st.spinner("Interpreting results with AI..."):
                             # 9/9 (LS) changed prompt and model, now r-plus
+                            # 19/9 change to llama 3.1 405 in chicago
                             llm2 = llm_manager.get_llm_models()[1]
 
                             ai_explanation = explain_response(
