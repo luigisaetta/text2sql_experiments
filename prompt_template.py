@@ -125,7 +125,7 @@ Please select the most relevant table(s) that can be used to generate SQL query 
 - Only return the most relevant table(s).
 - Return at most {top_n} tables.
 - Response should be a valid JSON array of table names which can be parsed by Python json.loads(). For a single table, the format should be ["table_name"].
-- enclose always the array in triple backtick
+- enclose always the array in triple backtick, don't start with 'json'
 
 ===Tables
 {table_schemas}

@@ -279,6 +279,7 @@ class SchemaManager(ABC):
                 "question": query,
             }
         )
+
         # extract the table list (in result it is surrounded by triple backtick)
         reranked_tables_list = self._extract_list(result.content)
 

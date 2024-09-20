@@ -38,8 +38,8 @@ ai_sql_agent = AISQLAgent(
 )
 
 # now battery of test using SH schema:
-# TESTS_FILE_NAME = "testsh50.txt"
-TESTS_FILE_NAME = "testhr30.txt"
+TESTS_FILE_NAME = "testsh50.txt"
+# TESTS_FILE_NAME = "testhr30.txt"
 # TESTS_FILE_NAME = "testhr_problems.txt"
 # TESTS_FILE_NAME = "testsh30_ita.txt"
 
@@ -52,7 +52,7 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 30
+TO_TEST = 50
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:

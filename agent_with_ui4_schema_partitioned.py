@@ -9,16 +9,13 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from sqlalchemy import text
 
-from langchain_community.embeddings import OCIGenAIEmbeddings
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
-from schema_manager_23ai import SchemaManager23AI
 from ai_sql_agent import AISQLAgent
 from user_profile_manager import ProfileManager
 
 
 from core_functions import (
-    generate_sql_with_models,
     explain_response,
     extract_plot_code_from_response,
 )
