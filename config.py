@@ -20,28 +20,39 @@ from config_private import (
     VECTOR_WALLET_PWD,
 )
 
+#
+# General settings
+#
 VERBOSE = True
 DEBUG = False
+# enable use of reranker (LLM) to select table for SQL
+ENABLE_RERANKING = True
+# if True add the AI explanation
+ENABLE_AI_EXPLANATION = True
 
-# LLM config
+# for REST API
+PORT = 8888
 
-# 2/09 inverted the list, first Llama3. Don't change the order
-# 19/09 removed llama 3 replaced with 3.1
-# MODEL_LIST = ["meta.llama-3.1-70b-instruct", "cohere.command-r-plus"]
+#
+# LLM settings
+#
+# Models are used in this order to generate SQL (second if first fails..)
 MODEL_LIST = [
     "meta.llama-3.1-70b-instruct",
-    "meta.llama-3.1-405b-instruct",
     "cohere.command-r-plus",
+    "meta.llama-3.1-405b-instruct",
 ]
 # now every model has its own endpoint, check carefully
 MODEL_ENDPOINTS = [
     "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
-    "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com",
     "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
+    "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com",
 ]
-INDEX_MODEL_FOR_SUMMARY = 1
-INDEX_MODEL_FOR_RERANKING = 0
-INDEX_MODEL_FOR_EXPLANATION = 1
+# index, in above lists of model for summary, reranking, explanation
+# (index start by 0)
+INDEX_MODEL_FOR_SUMMARY = 2
+INDEX_MODEL_FOR_RERANKING = 2
+INDEX_MODEL_FOR_EXPLANATION = 2
 
 TEMPERATURE = 0
 MAX_TOKENS = 2048
@@ -53,6 +64,9 @@ AUTH_TYPE = "API_KEY"
 EMBED_MODEL_NAME = "cohere.embed-english-v3.0"
 EMBED_ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 
+#
+# DB connectivity settings
+#
 # here we consolidate in a single structure configs to access DB
 # data DB config: this is to connect the data schema
 WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
@@ -84,9 +98,10 @@ VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
 # the strategy for similarity search Don't change
 DISTANCE_STRATEGY = DistanceStrategy.COSINE
 
-# if True add the AI explanation
-ENABLE_AI_EXPLANATION = True
 
+#
+# Similarity search and reranking
+#
 # parameters for schema partitioning
 # number of tables identified to satisfy the query
 # with similarity search
@@ -94,7 +109,3 @@ ENABLE_AI_EXPLANATION = True
 TOP_K = 6
 # top_n after reranking
 TOP_N = 6
-ENABLE_RERANKING = True
-
-# for REST API
-PORT = 8888

@@ -18,7 +18,7 @@ Be assertive.
 Format response in markdown.
 
 ## plotting instructions
-If the request asks for plotting the data generate the correct Python code
+If the request asks for plotting the data retrieved, generate the correct Python code
 to plot the data using matplotlib library.
 Align labels at 90 degrees.
  

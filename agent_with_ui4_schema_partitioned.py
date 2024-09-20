@@ -13,6 +13,7 @@ from langchain_community.embeddings import OCIGenAIEmbeddings
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
+from ai_sql_agent import AISQLAgent
 from user_profile_manager import ProfileManager
 
 
@@ -70,35 +71,23 @@ def create_cached_llm_manager():
     return llm_manager
 
 
-def create_schema_manager(_db_manager, _llm_manager):
-    """
-    Function to create and cache the LLM manager
-    """
-    embed_model = OCIGenAIEmbeddings(
-        model_id=EMBED_MODEL_NAME,
-        service_endpoint=EMBED_ENDPOINT,
-        compartment_id=COMPARTMENT_OCID,
-    )
-    schema_manager = SchemaManager23AI(_db_manager, _llm_manager, embed_model, logger)
-
-    if schema_manager is None:
-        st.error("Error setting up SchemaManager")
-        logger.error("Error setting up SchemaManager")
-        st.stop()
-
-    return schema_manager
-
-
-def init_session(db_manager, llm_manager):
+def init_session():
     """
     Init the session caching DB schema in session
     """
-    if "schema_manager" not in st.session_state:
-        logger.info("Reading DB schema info...")
+    if "sql_agent" not in st.session_state:
+        logger.info("Initialising SQL Agent...")
 
-        with st.spinner("Initialising Schema Manager..."):
-            st.session_state.schema_manager = create_schema_manager(
-                db_manager, llm_manager
+        with st.spinner("Initialising SQL Agent..."):
+            st.session_state.sql_agent = AISQLAgent(
+                CONNECT_ARGS,
+                MODEL_LIST,
+                MODEL_ENDPOINTS,
+                COMPARTMENT_OCID,
+                EMBED_MODEL_NAME,
+                EMBED_ENDPOINT,
+                TEMPERATURE,
+                PROMPT_TEMPLATE,
             )
         logger.info("Ready !!!")
         logger.info("")
@@ -141,8 +130,8 @@ db_manager = create_cached_db_manager()
 
 llm_manager = create_cached_llm_manager()
 
-# here we get the schema and cache in session
-init_session(db_manager, llm_manager)
+# here we get the sql_agent in session
+init_session()
 
 
 # Create a form to handle the input and button together
@@ -161,18 +150,8 @@ if submit_button and user_query:
         if user_profile.get_user_group_id() is not None:
             group_id = user_profile.get_user_group_id()
 
-    # get restricteed schema for the given user_query
-    restricted_schema = st.session_state.schema_manager.get_restricted_schema(
-        user_query
-    )
-
-    cleaned_query = generate_sql_with_models(
-        user_query,
-        restricted_schema,
-        db_manager,
-        llm_manager,
-        PROMPT_TEMPLATE,
-        group_id,
+    cleaned_query = st.session_state.sql_agent.generate_sql_query(
+        user_query, user_group_id=group_id
     )
 
     if len(cleaned_query) > 0:
