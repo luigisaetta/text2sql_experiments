@@ -4,7 +4,14 @@ TO test the AISQLAgent class
 
 from ai_sql_agent import AISQLAgent
 from prompt_template import PROMPT_TEMPLATE
-from config import MODEL_LIST, ENDPOINT, TEMPERATURE, EMBED_MODEL_NAME, CONNECT_ARGS
+from config import (
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    TEMPERATURE,
+    EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+    CONNECT_ARGS,
+)
 from config_private import COMPARTMENT_OCID
 
 if __name__ == "__main__":
@@ -14,9 +21,10 @@ if __name__ == "__main__":
     ai_sql_agent = AISQLAgent(
         CONNECT_ARGS,
         MODEL_LIST,
-        ENDPOINT,
+        MODEL_ENDPOINTS,
         COMPARTMENT_OCID,
         EMBED_MODEL_NAME,
+        EMBED_ENDPOINT,
         TEMPERATURE,
         PROMPT_TEMPLATE,
     )
@@ -27,7 +35,7 @@ if __name__ == "__main__":
         "give me examples of questions I can ask about our data",
         "List the top 10 sales by total amount, with product name, customer name, country name for sales in Europe",
         "Show me invoice 123456",
-        "List all the departments with the number of empoyee for departments",
+        "List all the departments with the number of employee for departments",
     ]
 
     for user_request in user_requests:

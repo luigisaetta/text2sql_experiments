@@ -25,9 +25,10 @@ class AISQLAgent:
         self,
         connect_args,
         model_list,
-        endpoint,
+        model_endpoints,
         compartment_ocid,
         embed_model_name,
+        embed_endpoint,
         temperature,
         prompt_template,
     ):
@@ -37,7 +38,7 @@ class AISQLAgent:
         Args:
             connect_args (dict): Database connection arguments to connect to DATA DB.
             model_list (list): List of LLM models to use.
-            endpoint (str): Service endpoint for the AI models.
+            model_endpoints (list): Service endpoints for the AI models.
             compartment_ocid (str): Compartment OCID for Oracle Cloud Infrastructure.
             embed_model_name (str): Embedding model name.
             temperature (float): Temperature setting for the LLM manager.
@@ -47,9 +48,10 @@ class AISQLAgent:
         # store information needed
         self.connect_args = connect_args
         self.model_list = model_list
-        self.endpoint = endpoint
+        self.model_endpoints = model_endpoints
         self.compartment_ocid = compartment_ocid
         self.embed_model_name = embed_model_name
+        self.embed_endpoint = embed_endpoint
         self.temperature = temperature
         self.prompt_template = prompt_template
 
@@ -71,7 +73,7 @@ class AISQLAgent:
         """Initialize the LLMManager with model list, endpoint, and temperature."""
         return LLMManager(
             self.model_list,
-            self.endpoint,
+            self.model_endpoints,
             self.compartment_ocid,
             self.temperature,
             self.logger,
@@ -81,7 +83,7 @@ class AISQLAgent:
         """Initialize the embedding model for schema manager."""
         return OCIGenAIEmbeddings(
             model_id=self.embed_model_name,
-            service_endpoint=self.endpoint,
+            service_endpoint=self.embed_endpoint,
             compartment_id=self.compartment_ocid,
         )
 

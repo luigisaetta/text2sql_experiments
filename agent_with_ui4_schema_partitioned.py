@@ -27,9 +27,11 @@ from config import (
     CONNECT_ARGS,
     ENABLE_AI_EXPLANATION,
     MODEL_LIST,
-    ENDPOINT,
+    MODEL_ENDPOINTS,
     TEMPERATURE,
     EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+    INDEX_MODEL_FOR_EXPLANATION,
 )
 from config_private import COMPARTMENT_OCID
 
@@ -57,7 +59,7 @@ def create_cached_llm_manager():
     Function to create and cache the LLM manager
     """
     llm_manager = LLMManager(
-        MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger
+        MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
     )
 
     if llm_manager is None:
@@ -74,7 +76,7 @@ def create_schema_manager(_db_manager, _llm_manager):
     """
     embed_model = OCIGenAIEmbeddings(
         model_id=EMBED_MODEL_NAME,
-        service_endpoint=ENDPOINT,
+        service_endpoint=EMBED_ENDPOINT,
         compartment_id=COMPARTMENT_OCID,
     )
     schema_manager = SchemaManager23AI(_db_manager, _llm_manager, embed_model, logger)
@@ -203,7 +205,9 @@ if submit_button and user_query:
                         with st.spinner("Interpreting results with AI..."):
                             # 9/9 (LS) changed prompt and model, now r-plus
                             # 19/9 change to llama 3.1 405 in chicago
-                            llm2 = llm_manager.get_llm_models()[1]
+                            llm_e = llm_manager.get_llm_models()[
+                                INDEX_MODEL_FOR_EXPLANATION
+                            ]
 
                             ai_explanation = explain_response(
                                 # user_query: initial request from user
@@ -211,7 +215,7 @@ if submit_button and user_query:
                                 # uses c-r-plus (model1)
                                 user_query,
                                 rows,
-                                llm2,
+                                llm_e,
                             )
 
                             st.write("**AI explanation:**")

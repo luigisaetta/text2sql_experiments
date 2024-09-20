@@ -12,7 +12,14 @@ from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
 from utils import get_console_logger
-from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, EMBED_MODEL_NAME
+from config import (
+    CONNECT_ARGS,
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    TEMPERATURE,
+    EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+)
 from config_private import COMPARTMENT_OCID
 
 
@@ -23,11 +30,11 @@ logger.info("")
 
 # with these we connect to the data schema
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
 
 embed_model = OCIGenAIEmbeddings(
     model_id=EMBED_MODEL_NAME,
-    service_endpoint=ENDPOINT,
+    service_endpoint=EMBED_ENDPOINT,
     compartment_id=COMPARTMENT_OCID,
 )
 

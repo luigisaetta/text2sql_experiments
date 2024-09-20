@@ -19,7 +19,12 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
 from prompt_template import PROMPT_TABLE_SUMMARY, PROMPT_RERANK
-from config import DEBUG, TOP_N
+from config import (
+    DEBUG,
+    TOP_N,
+    INDEX_MODEL_FOR_RERANKING,
+    INDEX_MODEL_FOR_SUMMARY,
+)
 
 SAMPLES_FILE = "sample_queries.json"
 
@@ -143,8 +148,8 @@ class SchemaManager(ABC):
         - a list of sample queries
         """
         table_summary_prompt = PromptTemplate.from_template(PROMPT_TABLE_SUMMARY)
-        llm1 = self.llm_manager.llm_models[0]
-        summary_chain = table_summary_prompt | llm1
+        llm_s = self.llm_manager.llm_models[INDEX_MODEL_FOR_SUMMARY]
+        summary_chain = table_summary_prompt | llm_s
 
         result = summary_chain.invoke(
             {
@@ -237,6 +242,20 @@ class SchemaManager(ABC):
         to be implemented
         """
 
+    def _extract_list(self, input_string):
+        """
+        Extract the content between the triple backticks
+        """
+        extracted_string = input_string.strip().strip("`")
+
+        # Remove the square brackets and extra whitespace
+        cleaned_string = extracted_string.replace("[", "").replace("]", "").strip()
+
+        # Split the string by commas and remove quotes/extra spaces
+        tables_list = [item.strip().strip('"') for item in cleaned_string.split(",")]
+
+        return tables_list
+
     def _rerank_table_list(self, query, top_k_schemas):
         """
         Get TOP_N tables from step1 in schema selection and use an LLM
@@ -249,8 +268,8 @@ class SchemaManager(ABC):
         # to be implemented and plugged in get_restricted schema
         table_select_prompt = PromptTemplate.from_template(PROMPT_RERANK)
 
-        llm1 = self.llm_manager.llm_models[0]
-        rerank_chain = table_select_prompt | llm1
+        llm_r = self.llm_manager.llm_models[INDEX_MODEL_FOR_RERANKING]
+        rerank_chain = table_select_prompt | llm_r
 
         result = rerank_chain.invoke(
             {
@@ -259,5 +278,7 @@ class SchemaManager(ABC):
                 "question": query,
             }
         )
+        # extract the table list (in result it is surrounded by triple backtick)
+        reranked_tables_list = self._extract_list(result.content)
 
-        return result.content
+        return reranked_tables_list

@@ -20,7 +20,7 @@ from core_functions import (
 )
 from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger, to_dict
-from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE, PORT
+from config import CONNECT_ARGS, MODEL_LIST, MODEL_ENDPOINTS, TEMPERATURE, PORT
 from config_private import COMPARTMENT_OCID
 
 
@@ -43,7 +43,7 @@ app.add_middleware(
 )
 
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
 
 engine = db_manager.engine
 # 0 is llama3-70B

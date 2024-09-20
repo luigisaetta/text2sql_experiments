@@ -14,9 +14,11 @@ class LLMManager:
     The class handle all the LLM-related tasks
     """
 
-    def __init__(self, model_list, endpoint, compartment_id, temperature, logger):
+    def __init__(
+        self, model_list, model_endpoints, compartment_id, temperature, logger
+    ):
         self.model_list = model_list
-        self.endpoint = endpoint
+        self.model_endpoints = model_endpoints
         self.compartment_id = compartment_id
         self.temperature = temperature
         self.logger = logger
@@ -29,7 +31,7 @@ class LLMManager:
         self.logger.info("LLMManager: Initialising the list of models...")
 
         models = []
-        for model in self.model_list:
+        for model, endpoint in zip(self.model_list, self.model_endpoints):
             self.logger.info("Model: %s", model)
 
             models.append(
@@ -37,7 +39,7 @@ class LLMManager:
                     # modified to support no-default auth (inst_princ..)
                     auth_type=AUTH_TYPE,
                     model_id=model,
-                    service_endpoint=self.endpoint,
+                    service_endpoint=endpoint,
                     compartment_id=self.compartment_id,
                     model_kwargs={
                         "temperature": self.temperature,

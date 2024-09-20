@@ -26,7 +26,7 @@ from config import (
     CONNECT_ARGS,
     ENABLE_AI_EXPLANATION,
     MODEL_LIST,
-    ENDPOINT,
+    MODEL_ENDPOINTS,
     TEMPERATURE,
 )
 from config_private import COMPARTMENT_OCID
@@ -55,7 +55,7 @@ def create_cached_llm_manager():
     Function to create and cache the LLM manager
     """
     llm_manager = LLMManager(
-        MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger
+        MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
     )
 
     if llm_manager is None:

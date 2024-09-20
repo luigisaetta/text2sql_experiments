@@ -17,7 +17,7 @@ from llm_manager import LLMManager
 from core_functions import generate_sql_with_models, get_formatted_schema
 from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger
-from config import CONNECT_ARGS, MODEL_LIST, ENDPOINT, TEMPERATURE
+from config import CONNECT_ARGS, MODEL_LIST, MODEL_ENDPOINTS, TEMPERATURE
 from config_private import COMPARTMENT_OCID
 
 
@@ -89,7 +89,7 @@ with open(GOLDEN_TRUTH_FILE, "r", encoding="UTF-8") as g_file:
 logger = get_console_logger()
 
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, ENDPOINT, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
 
 SCHEMA = get_formatted_schema(
     db_manager.engine,

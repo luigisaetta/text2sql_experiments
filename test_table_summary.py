@@ -12,9 +12,10 @@ from prompt_template import PROMPT_TEMPLATE
 from config import (
     CONNECT_ARGS,
     MODEL_LIST,
-    ENDPOINT,
+    MODEL_ENDPOINTS,
     TEMPERATURE,
     EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
 )
 from config_private import COMPARTMENT_OCID
 
@@ -28,9 +29,10 @@ logger = get_console_logger()
 ai_sql_agent = AISQLAgent(
     CONNECT_ARGS,
     MODEL_LIST,
-    ENDPOINT,
+    MODEL_ENDPOINTS,
     COMPARTMENT_OCID,
     EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
     TEMPERATURE,
     PROMPT_TEMPLATE,
 )
@@ -50,7 +52,7 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 30
+TO_TEST = 50
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:

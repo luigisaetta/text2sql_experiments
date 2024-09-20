@@ -24,8 +24,6 @@ VERBOSE = True
 DEBUG = False
 
 # LLM config
-# ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
-ENDPOINT = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
 
 # 2/09 inverted the list, first Llama3. Don't change the order
 # 19/09 removed llama 3 replaced with 3.1
@@ -35,6 +33,16 @@ MODEL_LIST = [
     "meta.llama-3.1-405b-instruct",
     "cohere.command-r-plus",
 ]
+# now every model has its own endpoint, check carefully
+MODEL_ENDPOINTS = [
+    "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
+    "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com",
+    "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
+]
+INDEX_MODEL_FOR_SUMMARY = 1
+INDEX_MODEL_FOR_RERANKING = 0
+INDEX_MODEL_FOR_EXPLANATION = 1
+
 TEMPERATURE = 0
 MAX_TOKENS = 2048
 
@@ -43,6 +51,7 @@ AUTH_TYPE = "API_KEY"
 
 # for embeddings
 EMBED_MODEL_NAME = "cohere.embed-english-v3.0"
+EMBED_ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 
 # here we consolidate in a single structure configs to access DB
 # data DB config: this is to connect the data schema
@@ -82,7 +91,7 @@ ENABLE_AI_EXPLANATION = True
 # number of tables identified to satisfy the query
 # with similarity search
 # for now we support only join max 6 tables...
-TOP_K = 8
+TOP_K = 6
 # top_n after reranking
 TOP_N = 6
 ENABLE_RERANKING = True
