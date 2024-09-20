@@ -20,6 +20,7 @@ from config import (
     CONNECT_ARGS_VECTOR,
     VECTOR_TABLE_NAME,
     DISTANCE_STRATEGY,
+    ENABLE_RERANKING,
 )
 
 
@@ -158,6 +159,8 @@ class SchemaManager23AI(SchemaManager):
         """
         # find TOP_N table summaries closer to query
         # this way we identify relevant tables for the query
+        # step1: similarity search: returns TOP_K
+        # step2: rerank, using LLM and returns TOP_N
         try:
             conn = self._get_db_connection()
 
@@ -168,7 +171,7 @@ class SchemaManager23AI(SchemaManager):
                 distance_strategy=DISTANCE_STRATEGY,
             )
 
-            # get TOP_K tables
+            # get TOP_K tables (step1)
             results = v_store.similarity_search(query, k=TOP_K)
 
             conn.close()
@@ -197,11 +200,27 @@ class SchemaManager23AI(SchemaManager):
             if DEBUG:
                 self.logger.info(restricted_schema)
 
-            if len(restricted_schema) > 0:
-                top_n_list = self._rerank_table_list(query, restricted_schema)
+            # this part added (20/09) for reranking table list
+            if ENABLE_RERANKING and len(restricted_schema) > 0:
+                # step2
+                restricted_schema2_parts = []
+                # rerank  and restrict (call LLM)
+                table_top_n_list = self._rerank_table_list(query, restricted_schema)
+
                 self.logger.info("Reranker result:")
-                self.logger.info(top_n_list)
+                self.logger.info(table_top_n_list)
                 self.logger.info("")
+
+                for table_name in table_top_n_list:
+                    # find the table chunk
+                    for doc in results:
+                        if doc.metadata.get("table") == table_name.upper():
+                            self.logger.info("Added to reranked schema: %s", table_name)
+                            table_chunk = doc.metadata.get("table_chunk")
+                            restricted_schema2_parts.append(table_chunk)
+                            break
+
+                restricted_schema = "".join(restricted_schema2_parts)
 
         except Exception as e:
             self.logger.error("Error in SchemaManager:get_restricted_schema...")

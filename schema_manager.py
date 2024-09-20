@@ -245,6 +245,7 @@ class SchemaManager(ABC):
     def _extract_list(self, input_string):
         """
         Extract the content between the triple backticks
+        Function used by _rerank_table_list
         """
         extracted_string = input_string.strip().strip("`")
 

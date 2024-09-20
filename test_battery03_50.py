@@ -34,7 +34,9 @@ logger.info("Testing on schema: %s", DB_USER)
 logger.info("")
 
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(
+    MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
+)
 
 SCHEMA = get_formatted_schema(
     db_manager.engine,

@@ -43,7 +43,9 @@ app.add_middleware(
 )
 
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(
+    MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
+)
 
 engine = db_manager.engine
 # 0 is llama3-70B

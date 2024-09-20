@@ -30,7 +30,9 @@ logger.info("")
 
 # with these we connect to the data schema
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(
+    MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
+)
 
 embed_model = OCIGenAIEmbeddings(
     model_id=EMBED_MODEL_NAME,

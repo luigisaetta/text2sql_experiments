@@ -12,7 +12,9 @@ from config_private import COMPARTMENT_OCID
 logger = get_console_logger()
 
 db_manager = DatabaseManager(CONNECT_ARGS, logger)
-llm_manager = LLMManager(MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger)
+llm_manager = LLMManager(
+    MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
+)
 
 SCHEMA = get_formatted_schema(
     db_manager.engine,
