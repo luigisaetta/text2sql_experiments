@@ -151,6 +151,22 @@ class SchemaManager23AI(SchemaManager):
 
         return tables_dict
 
+    def _similarity_search(self, query, conn):
+        """
+        execute the search for TOP_K tables using 23AI
+        """
+        v_store = OracleVS(
+            conn,
+            self.embed_model,
+            table_name=VECTOR_TABLE_NAME,
+            distance_strategy=DISTANCE_STRATEGY,
+        )
+
+        # get TOP_K tables (step1)
+        results = v_store.similarity_search(query, k=TOP_K)
+
+        return results
+
     def get_restricted_schema(self, query):
         """
         Returns the portion of the schema relevant to the user query, based on similarity search.
@@ -164,19 +180,11 @@ class SchemaManager23AI(SchemaManager):
         try:
             conn = self._get_db_connection()
 
-            v_store = OracleVS(
-                conn,
-                self.embed_model,
-                table_name=VECTOR_TABLE_NAME,
-                distance_strategy=DISTANCE_STRATEGY,
-            )
-
-            # get TOP_K tables (step1)
-            results = v_store.similarity_search(query, k=TOP_K)
-
-            conn.close()
+            results = self._similarity_search(query, conn)
 
             # now generate the portion of schema with the retrieved tables
+
+            # step 1: TOP_K
             restricted_schema_parts = []
 
             self.logger.info("Identifying relevant tables for query...")
@@ -193,14 +201,9 @@ class SchemaManager23AI(SchemaManager):
                     self.logger.warning("No chunk found for table %s", table_name)
 
             # Join the accumulated chunks into a single string
-            # this is the schema relevant to generate the SQL
-            # associated to the user query
             restricted_schema = "".join(restricted_schema_parts)
 
-            if DEBUG:
-                self.logger.info(restricted_schema)
-
-            # this part added (20/09) for reranking table list
+            # added this part (20/09) for reranking table list
             if ENABLE_RERANKING and len(restricted_schema) > 0:
                 # step2
                 restricted_schema2_parts = []
@@ -215,7 +218,6 @@ class SchemaManager23AI(SchemaManager):
                     # find the table chunk
                     for doc in results:
                         if doc.metadata.get("table") == table_name.upper():
-                            self.logger.info("Added to reranked schema: %s", table_name)
                             table_chunk = doc.metadata.get("table_chunk")
                             restricted_schema2_parts.append(table_chunk)
                             break

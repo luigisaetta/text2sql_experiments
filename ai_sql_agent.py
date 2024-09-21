@@ -70,7 +70,7 @@ class AISQLAgent:
         return DatabaseManager(self.connect_args, self.logger)
 
     def _initialize_llm_manager(self):
-        """Initialize the LLMManager with model list, endpoint, and temperature."""
+        """Initialize the LLMManager with model list, endpoints, and temperature."""
         return LLMManager(
             self.model_list,
             self.model_endpoints,
