@@ -4,7 +4,7 @@ This file contains all the examples to be used in the prompt for SQL generation
 
 # the list of few shot examples is here
 EXAMPLES = """"
-User query: give me examples of questions I can ask about our data
+User Query: give me examples of questions I can ask about our data
 SQL Query: SELECT t.table_name, c.column_name FROM user_tables t JOIN user_tab_columns c
 ON t.table_name = c.table_name ORDER BY t.table_name, c.column_id
 
@@ -19,7 +19,7 @@ SQL Query: SELECT column_name, data_type FROM user_tab_columns WHERE table_name 
 User Query: describe the sales table, list all available columns
 SQL Query: SELECT column_name, data_type FROM user_tab_columns WHERE table_name = 'SALES'
 
-User query: Describe table CUSTOMERS
+User Query: Describe table CUSTOMERS
 SQL Query: SELECT column_name, data_type FROM user_tab_columns WHERE table_name = 'CUSTOMERS'
 
 User Query: How many suppliers are there?
@@ -28,8 +28,10 @@ SQL Query: SELECT COUNT(*) FROM suppliers
 User Query: How many supplier are TAX AUTHORITY?
 SQL Query: SELECT COUNT(*) FROM Suppliers WHERE supplier_type_code = 'TAX AUTHORITY'
 
-User Query: What is the total amount for invoices with a payment currency of USD from 'company1'?
-SQL Query: SELECT SUM(invoice_amount) AS total_amount FROM ap_invoices WHERE payment_currency = 'USD' AND UPPER(supplier_name) LIKE '%COMPANY1%'
+User Query: What is the total amount for invoices with a payment currency of USD from supplier 'CDW'?
+SQL Query: SELECT SUM(i.invoice_amount) AS total_amount FROM ap_invoices i 
+JOIN suppliers s ON i.supplier_number = s.supplier_number 
+WHERE i.payment_currency = 'USD' AND UPPER(s.supplier_name) LIKE UPPER('%DemoSupplier%')
 
 User Query: list top 5 invoices with highest amount
 SQL Query:  SELECT * FROM ap_invoices ORDER BY invoice_amount DESC FETCH FIRST 5 ROWS ONLY

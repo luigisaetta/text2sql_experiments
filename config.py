@@ -1,7 +1,6 @@
 """
 public configurations
 
-changed: 9/9/2024, only private config (pwd) left in config_private
 """
 
 from langchain_community.vectorstores.utils import DistanceStrategy
@@ -25,7 +24,7 @@ from config_private import (
 #
 VERBOSE = True
 DEBUG = False
-# enable use of reranker (LLM) to select table for SQL
+# enable use of reranker (LLM) to select table for SQL generation
 ENABLE_RERANKING = True
 # if True add the AI explanation
 ENABLE_AI_EXPLANATION = True
@@ -43,6 +42,7 @@ MODEL_LIST = [
     "meta.llama-3.1-405b-instruct",
 ]
 # now every model has its own endpoint, check carefully
+# must be aligned to MODEL_LIST (405B in Chicago)
 MODEL_ENDPOINTS = [
     "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
     "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com",
@@ -98,6 +98,8 @@ VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
 # the strategy for similarity search Don't change
 DISTANCE_STRATEGY = DistanceStrategy.COSINE
 
+# the table where we store a list of user_queries for each table in the data schema
+TABLE_NAME_SQ = "sample_queries"
 
 #
 # Similarity search and reranking

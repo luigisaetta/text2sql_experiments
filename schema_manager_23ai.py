@@ -16,11 +16,11 @@ from langchain_community.vectorstores.oraclevs import OracleVS
 from schema_manager import SchemaManager
 from config import (
     TOP_K,
-    DEBUG,
     CONNECT_ARGS_VECTOR,
     VECTOR_TABLE_NAME,
     DISTANCE_STRATEGY,
     ENABLE_RERANKING,
+    TABLE_NAME_SQ,
 )
 
 
@@ -32,7 +32,8 @@ class SchemaManager23AI(SchemaManager):
     # init defined in the superclass
 
     # the table where we store a list of user_queries for each table in the data schema
-    TABLE_NAME_SQ = "sample_queries"
+    # name imported from config
+    TABLE_NAME_SQ = TABLE_NAME_SQ
 
     def init_schema_manager(self):
         """

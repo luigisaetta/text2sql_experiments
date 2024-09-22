@@ -4,6 +4,7 @@ Prompts
 examples moved to a separate file
 """
 
+# these are the few shot examples
 from examples_4_prompt import EXAMPLES
 
 #

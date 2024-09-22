@@ -8,7 +8,7 @@ import json
 import oracledb
 
 from utils import get_console_logger
-from config import CONNECT_ARGS_VECTOR
+from config import CONNECT_ARGS_VECTOR, TABLE_NAME_SQ
 
 SAMPLES_FILE = "sample_queries.json"
 
@@ -19,10 +19,10 @@ logger = get_console_logger()
 connection = oracledb.connect(**CONNECT_ARGS_VECTOR)
 
 # to clear the table before loading
-DELETE_QUERY = "DELETE FROM sample_queries"
+DELETE_QUERY = f"DELETE FROM {TABLE_NAME_SQ}"
 
-INSERT_QUERY = """
-    INSERT INTO sample_queries (table_name, sample_query)
+INSERT_QUERY = f"""
+    INSERT INTO {TABLE_NAME_SQ} (table_name, sample_query)
     VALUES (:table_name, :sample_query)
 """
 
