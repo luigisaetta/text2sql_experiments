@@ -38,8 +38,8 @@ ai_sql_agent = AISQLAgent(
 )
 
 # now battery of test using SH schema:
-TESTS_FILE_NAME = "testsh50.txt"
-# TESTS_FILE_NAME = "testhr30.txt"
+# TESTS_FILE_NAME = "testsh50.txt"
+TESTS_FILE_NAME = "testhr30.txt"
 # TESTS_FILE_NAME = "testhr_problems.txt"
 # TESTS_FILE_NAME = "testsh30_ita.txt"
 
