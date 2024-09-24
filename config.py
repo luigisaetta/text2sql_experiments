@@ -24,6 +24,7 @@ from config_private import (
 #
 VERBOSE = True
 DEBUG = False
+
 # enable use of reranker (LLM) to select table for SQL generation
 ENABLE_RERANKING = True
 # if True add the AI explanation
@@ -55,7 +56,7 @@ INDEX_MODEL_FOR_RERANKING = 2
 INDEX_MODEL_FOR_EXPLANATION = 2
 
 TEMPERATURE = 0
-MAX_TOKENS = 2048
+MAX_TOKENS = 4000
 
 # the way we handle auth for GenAI
 AUTH_TYPE = "API_KEY"
@@ -70,6 +71,8 @@ EMBED_ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.
 # here we consolidate in a single structure configs to access DB
 # data DB config: this is to connect the data schema
 WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
+# ebiz uk sandbox
+# WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_EBIZ"
 
 CONNECT_ARGS = {
     "user": DB_USER,
@@ -100,6 +103,16 @@ DISTANCE_STRATEGY = DistanceStrategy.COSINE
 
 # the table where we store a list of user_queries for each table in the data schema
 TABLE_NAME_SQ = "sample_queries"
+
+# Data Schema
+# this config is to limit the list of tables we read from the Data Schema
+# should contain a prefix like D_ or ALL
+INCLUDE_TABLES_PREFIX = "ALL"
+# INCLUDE_TABLES_PREFIX = "DH"
+
+# number of samples read from each table
+N_SAMPLES = 3
+
 
 #
 # Similarity search and reranking

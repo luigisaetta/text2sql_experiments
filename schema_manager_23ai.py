@@ -21,6 +21,7 @@ from config import (
     DISTANCE_STRATEGY,
     ENABLE_RERANKING,
     TABLE_NAME_SQ,
+    INCLUDE_TABLES_PREFIX,
 )
 
 
@@ -47,7 +48,19 @@ class SchemaManager23AI(SchemaManager):
             raw_schema = self._get_raw_schema()
 
             # split the schema for tables
+            # tables is a list of table chunk (chunks of schema desc)
             tables = raw_schema["table_info"].split("CREATE TABLE")
+
+            # added to eventually filter table_names
+            if INCLUDE_TABLES_PREFIX != "ALL":
+                # takes only those starting with INCLUDE_TABLES_PREFIX
+                tables = [
+                    t_chunk
+                    for t_chunk in tables
+                    if self._get_table_name_from_table_chunk(t_chunk)
+                    .upper()
+                    .startswith(INCLUDE_TABLES_PREFIX)
+                ]
 
             # read the samples queries for each table and
             # create the structure with table_name, sample_queries

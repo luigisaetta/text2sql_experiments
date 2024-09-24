@@ -21,7 +21,7 @@ class DatabaseManager:
         """
         create the DB engine
 
-        for ADB connection needs wallet and tnsnames configured
+        for ADB connection needs wallet and tnsnames
         """
         try:
             self.logger.info("Connecting to the Database...")
@@ -31,7 +31,7 @@ class DatabaseManager:
                 thick_mode=False,
                 connect_args=self.connect_args,
             )
-            self.logger.info("Connected, DB engine created...")
+            self.logger.info("DB engine created...")
 
             return engine
 
@@ -81,3 +81,21 @@ class DatabaseManager:
             self.logger.error("Error in DatabaseManager:execute_sql...")
             self.logger.error("Generic Error executing SQL query: %s", e)
             return None
+
+    #
+    # to get a list of tables whose names starts with PREFIX
+    #
+    def get_tables_list(self, prefix):
+        """
+        prefix: the initial part of the name of the table
+        """
+        with self.engine.connect() as connection:
+            query = (
+                f"SELECT TABLE_NAME FROM USER_TABLES WHERE TABLE_NAME LIKE '{prefix}%'"
+            )
+
+            rows = connection.execute(text(query)).mappings().all()
+
+            tables = [table_dict["table_name"] for table_dict in rows]
+
+        return tables

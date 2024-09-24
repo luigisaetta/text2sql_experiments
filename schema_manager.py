@@ -13,6 +13,7 @@ this is an abstract class
 import re
 import json
 from abc import ABC, abstractmethod
+import oracledb
 from langchain_core.prompts import PromptTemplate
 from langchain.docstore.document import Document
 from langchain_community.utilities.sql_database import SQLDatabase
@@ -20,11 +21,14 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
 from prompt_template import PROMPT_TABLE_SUMMARY, PROMPT_RERANK
 from config import (
+    CONNECT_ARGS,
     DEBUG,
     TOP_N,
+    N_SAMPLES,
     INDEX_MODEL_FOR_RERANKING,
     INDEX_MODEL_FOR_SUMMARY,
 )
+from config_private import DB_USER
 
 SAMPLES_FILE = "sample_queries.json"
 
@@ -54,16 +58,156 @@ class SchemaManager(ABC):
         to be implemented
         """
 
-    def _get_raw_schema(self):
+    def _get_raw_schema2(self):
         """
+        This is the old code, slow on Oracle Ebiz
         Connect to data DB and get raw DB schema
-        """
-        llm1 = self.llm_manager.llm_models[0]
 
-        toolkit = SQLDatabaseToolkit(db=SQLDatabase(self.db_manager.engine), llm=llm1)
+        Here only before all tests
+        """
+        llm_s = self.llm_manager.llm_models[INDEX_MODEL_FOR_SUMMARY]
+
+        toolkit = SQLDatabaseToolkit(db=SQLDatabase(self.db_manager.engine), llm=llm_s)
         raw_schema = toolkit.get_context()
 
         return raw_schema
+
+    def _get_raw_schema(self, schema_owner=DB_USER, n_samples=N_SAMPLES):
+        """
+        This is the new code
+        Connect to data DB and get raw DB schema
+
+        This function reads metadata and sample data for each table
+        """
+        conn = oracledb.connect(**CONNECT_ARGS)
+
+        # the dict that will contain the raw schema
+        output_dict = {"table_info": "", "table_names": ""}
+
+        try:
+            # Create a cursor object
+            cursor = conn.cursor()
+
+            # to simplify DDL generation removing info not needed
+            cursor.execute(
+                """
+                BEGIN
+                    DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 
+                    'STORAGE', FALSE);
+                    DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 
+                    'TABLESPACE', FALSE);
+                    DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 
+                    'SEGMENT_ATTRIBUTES', FALSE);
+                    DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 
+                    'CONSTRAINTS_AS_ALTER', TRUE);
+                END;
+            """
+            )
+
+            # Query to get the table names sorted alphabetically
+            query = """
+                SELECT table_name
+                FROM all_tables
+                WHERE owner = :schema_owner
+                ORDER BY table_name
+            """
+
+            # Execute the query
+            cursor.execute(query, schema_owner=schema_owner)
+
+            # Fetch all table names
+            tables = cursor.fetchall()
+
+            # to memorize all the tables
+            table_names = []
+
+            # Iterate through each table and get its CREATE TABLE statement
+            for table in tables:
+                table_name = table[0]
+                table_names.append(table_name)
+
+                # Use DBMS_METADATA to generate the CREATE TABLE statement
+                cursor.execute(
+                    f"""
+                    SELECT DBMS_METADATA.GET_DDL('TABLE', '{table_name}', '{schema_owner}')
+                    FROM dual
+                """
+                )
+
+                # Fetch the DDL
+                ddl_lob = cursor.fetchone()[0]
+
+                # Remove the collate clauses
+                # Convert LOB to string
+                ddl = ddl_lob.read() if isinstance(ddl_lob, oracledb.LOB) else ddl_lob
+                ddl_cleaned = ddl.replace('COLLATE "USING_NLS_COMP"', "")
+                ddl_cleaned = ddl_cleaned.replace(
+                    'DEFAULT COLLATION "USING_NLS_COMP"', ""
+                )
+                # remove schema from ddl
+                ddl_cleaned = ddl_cleaned.replace(f'"{schema_owner}".', "")
+                # remove "
+                ddl_cleaned = ddl_cleaned.replace('"', "")
+
+                # Build output for table info
+                table_info = f"{ddl_cleaned}\n\n"
+
+                if DEBUG:
+                    self.logger.info(table_info)
+
+                # add output to dict
+                output_dict["table_info"] += table_info
+
+                # Query to get the first 3 records from the table
+                try:
+                    cursor.execute(
+                        f"SELECT * FROM {schema_owner}.{table_name} FETCH FIRST {n_samples} ROWS ONLY"
+                    )
+                    records = cursor.fetchall()
+
+                    # Get the column names for better formatting
+                    columns = [col[0] for col in cursor.description]
+
+                    # output for records
+                    records_info = (
+                        f"--- First {n_samples} records from {table_name} ---\n"
+                    )
+                    if records:
+                        # add columns headers
+                        records_info += " | ".join(columns) + "\n"
+
+                        # add records
+                        for record in records:
+                            records_info += str(record) + "\n"
+                    else:
+                        records_info += f"No records found in {table_name}\n"
+
+                    if DEBUG:
+                        self.logger.info(records_info)
+
+                    # add output to dict
+                    output_dict["table_info"] += records_info + "\n"
+
+                except Exception as e:
+                    error_message = f"Error retrieving records from {table_name}: {e}\n"
+                    self.logger.error(error_message)
+                    # add nothings
+                    output_dict["table_info"] += "\n"
+
+            # add table names comma separated
+            output_dict["table_names"] = ", ".join(table_names)
+
+        except Exception as e:
+            self.logger.error("Error: %s", e)
+
+        finally:
+            # Close the cursor
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+        return output_dict
 
     def _remove_compress_line(self, chunk):
         """ "
@@ -80,6 +224,21 @@ class SchemaManager(ABC):
         updated_chunk = "\n".join(lines)
 
         return updated_chunk
+
+    def _get_table_name_from_table_chunk(self, chunk):
+        """
+        extract only the table name
+        """
+        table_name = ""
+
+        if chunk.strip():
+            match = re.search(r"^\s*([a-zA-Z_][\w]*)\s*\(", chunk)
+
+            if match:
+                table_name = match.group(1)
+                table_name = table_name.upper()
+
+        return table_name
 
     def _process_schema(self, tables, tables_dict):
         """

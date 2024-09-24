@@ -6,7 +6,13 @@ from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from core_functions import get_formatted_schema
 from utils import get_console_logger
-from config import CONNECT_ARGS, MODEL_LIST, MODEL_ENDPOINTS, TEMPERATURE
+from config import (
+    CONNECT_ARGS,
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    TEMPERATURE,
+    INDEX_MODEL_FOR_SUMMARY,
+)
 from config_private import COMPARTMENT_OCID
 
 logger = get_console_logger()
@@ -19,7 +25,7 @@ llm_manager = LLMManager(
 SCHEMA = get_formatted_schema(
     db_manager.engine,
     # 0 is Llama3
-    llm_manager.llm_models[0],
+    llm_manager.llm_models[INDEX_MODEL_FOR_SUMMARY],
 )
 
 print(SCHEMA)

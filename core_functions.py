@@ -36,7 +36,11 @@ def format_schema(schema):
         if table.strip():  # Check if the table is not an empty string
             formatted_schema.append(f"CREATE TABLE {table.strip()}\n{'-'*40}\n")
 
+            if DEBUG:
+                logger.info("Table: %s", table.strip())
+
     if VERBOSE:
+        logger.info("")
         logger.info("Found information for %s tables...", len(tables))
         logger.info("")
 
@@ -73,7 +77,11 @@ def get_formatted_schema(engine, llm):
 
     try:
         toolkit = SQLDatabaseToolkit(db=SQLDatabase(engine), llm=llm)
+
         raw_schema = toolkit.get_context()
+
+        if DEBUG:
+            logger.info(raw_schema)
 
         schema = format_schema(raw_schema)
 
