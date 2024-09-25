@@ -10,17 +10,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-
+from ai_sql_agent import AISQLAgent
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 
-from core_functions import (
-    get_formatted_schema,
-    generate_sql_with_models,
-)
 from prompt_template import PROMPT_TEMPLATE
 from utils import get_console_logger, to_dict
-from config import CONNECT_ARGS, MODEL_LIST, MODEL_ENDPOINTS, TEMPERATURE, PORT
+from config import (
+    CONNECT_ARGS,
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+    TEMPERATURE,
+    PORT,
+)
 from config_private import COMPARTMENT_OCID
 
 
@@ -51,7 +55,17 @@ engine = db_manager.engine
 # 0 is llama3-70B
 llm1 = llm_manager.llm_models[0]
 
-SCHEMA = get_formatted_schema(engine, llm1)
+# Initialize the agent, only once !!!
+ai_sql_agent = AISQLAgent(
+    CONNECT_ARGS,
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    COMPARTMENT_OCID,
+    EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+    TEMPERATURE,
+    PROMPT_TEMPLATE,
+)
 
 
 class GenerateSQLInput(BaseModel):
@@ -94,9 +108,7 @@ def generate(request: GenerateSQLInput):
     content = ""
 
     if len(user_query) > 0:
-        sql_query = generate_sql_with_models(
-            user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
-        )
+        sql_query = ai_sql_agent.generate_sql_query(user_query, user_group_id=None)
 
         if len(sql_query) > 0:
             content = sql_query
@@ -119,9 +131,8 @@ def generate_and_exec_sql(request: GenerateSQLInput):
 
     rows = None
     if len(user_query) > 0:
-        sql_query = generate_sql_with_models(
-            user_query, SCHEMA, db_manager, llm_manager, PROMPT_TEMPLATE
-        )
+        sql_query = ai_sql_agent.generate_sql_query(user_query, user_group_id=None)
+
         if len(sql_query) > 0:
             rows = db_manager.execute_sql(sql_query)
 
