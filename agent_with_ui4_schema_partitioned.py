@@ -89,17 +89,53 @@ def init_session():
         logger.info("Ready !!!")
         logger.info("")
 
+    if "user_query" not in st.session_state:
+        st.session_state.user_query = ""
+
+
+def abbreviate_question(question, max_length=40):
+    if len(question) > max_length:
+        return question[:max_length] + "..."
+    return question
+
 
 #
 # Main
 #
 # Streamlit UI
-st.title("Oracle SQL Agent V2 Chat Interface")
+st.title("Oracle SQL Agent V2.1")
 
-# Sidebar options for model selection
+# section to handle sample question
+st.sidebar.title("Sample questions")
+
+sample_questions = [
+    "What is the total number of employees in the company as of today?",
+    "Can you show me a list of all departments along with the headcount in each department?",
+    "What is the average salary across all departments?",
+    "Which employees have joined the company in 2018, and what are their respective departments?",
+    "How many products have been sold in the last 30 days, categorized by region and product type?",
+]
+
+# Create abbreviated versions of the sample questions for the sidebar
+abbreviated_questions = [abbreviate_question(q) for q in sample_questions]
+
+# Add the radio buttons to the sidebar with abbreviated questions
+selected_abbreviation = st.sidebar.radio("Choose a question:", abbreviated_questions)
+
+# Find the full question corresponding to the selected abbreviation
+selected_question = sample_questions[abbreviated_questions.index(selected_abbreviation)]
+
+if selected_question:
+    st.session_state.user_query = (
+        selected_question  # Update session state with selected question
+    )
+
+# Sidebar options for features selection
 st.sidebar.title("Features selection")
 
 CHECK_AI_EXPL_DISABLED = not ENABLE_AI_EXPLANATION
+
+check_show_sql = st.sidebar.checkbox("Show SQL")
 
 check_enable_ai_expl = st.sidebar.checkbox(
     "Enable AI explanation", disabled=CHECK_AI_EXPL_DISABLED
@@ -134,7 +170,9 @@ init_session()
 # Create a form to handle the input and button together
 with st.form(key="query_form"):
     # enlarged now it is multiline
-    user_query = st.text_area("Enter your query:", "", height=100)
+    user_query = st.text_area(
+        "Enter your query:", st.session_state.user_query, height=100
+    )
     submit_button = st.form_submit_button(label="Run Query")
 
 if submit_button and user_query:
@@ -152,7 +190,8 @@ if submit_button and user_query:
     )
 
     if len(cleaned_query) > 0:
-        st.write(f"**Generated SQL Query: {cleaned_query}**")
+        if check_show_sql:
+            st.write(f"**Generated SQL Query: {cleaned_query}**")
 
         # Execute the SQL query
         try:
