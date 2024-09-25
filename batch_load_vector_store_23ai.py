@@ -6,8 +6,7 @@ This is the script to be used to do the first load of the SCHEMA_VECTORS
 you need to relaunch this script. It will drop and reload the collection
 """
 
-from langchain_community.embeddings import OCIGenAIEmbeddings
-
+from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
@@ -34,7 +33,7 @@ llm_manager = LLMManager(
     MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
 )
 
-embed_model = OCIGenAIEmbeddings(
+embed_model = OCIGenAIEmbeddingsWithBatch(
     model_id=EMBED_MODEL_NAME,
     service_endpoint=EMBED_ENDPOINT,
     compartment_id=COMPARTMENT_OCID,

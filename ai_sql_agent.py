@@ -6,8 +6,7 @@ Author: L. Saetta (Oracle)
         v 0.95
 """
 
-from langchain_community.embeddings import OCIGenAIEmbeddings
-
+from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from core_functions import generate_sql_with_models
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
@@ -81,7 +80,7 @@ class AISQLAgent:
 
     def _initialize_embed_model(self):
         """Initialize the embedding model for schema manager."""
-        return OCIGenAIEmbeddings(
+        return OCIGenAIEmbeddingsWithBatch(
             model_id=self.embed_model_name,
             service_endpoint=self.embed_endpoint,
             compartment_id=self.compartment_ocid,

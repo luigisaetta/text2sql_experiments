@@ -152,6 +152,25 @@ class SchemaManager(ABC):
                 # Build output for table info
                 table_info = f"{ddl_cleaned}\n\n"
 
+                # ADD COLUMN COMMENTS
+                cursor.execute(
+                    """
+                    SELECT column_name, comments
+                    FROM all_col_comments
+                    WHERE owner = :schema_owner AND table_name = :table_name
+                    """,
+                    schema_owner=schema_owner,
+                    table_name=table_name,
+                )
+                column_comments = cursor.fetchall()
+
+                if column_comments:
+                    table_info += "--- Column Comments ---\n"
+                    for column_name, comment in column_comments:
+                        if comment:
+                            table_info += f"Column {column_name}: {comment}\n"
+                    table_info += "\n"
+
                 if DEBUG:
                     self.logger.info(table_info)
 

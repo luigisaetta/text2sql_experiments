@@ -97,7 +97,12 @@ CONNECT_ARGS_VECTOR = {
     "wallet_password": VECTOR_WALLET_PWD,
 }
 # the name of the table where we store tables summary and embeddings
-VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
+
+# this one is dedicated to Ebiz tests
+# VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
+# this one is dedicated to our internal tests
+VECTOR_TABLE_NAME = "SCHEMA_VECTORS_SH"
+
 # the strategy for similarity search Don't change
 DISTANCE_STRATEGY = DistanceStrategy.COSINE
 
