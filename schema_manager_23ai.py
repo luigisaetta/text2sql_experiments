@@ -109,7 +109,9 @@ class SchemaManager23AI(SchemaManager):
             cursor = conn.cursor()
 
             # SQL statement to delete a record where t_name matches
-            sql = f"DELETE FROM {VECTOR_TABLE_NAME} WHERE json_value(METADATA, '$.source') = :t_name_value"
+            sql = f"""DELETE FROM {VECTOR_TABLE_NAME} WHERE 
+                   json_value(METADATA, '$.table') = :t_name_value
+                   """
 
             # Execute the DELETE SQL with the value of t_name
             cursor.execute(sql, {"t_name_value": t_name})
@@ -135,8 +137,8 @@ class SchemaManager23AI(SchemaManager):
             # tables is a list of table chunk (chunks of schema desc)
             tables = raw_schema["table_info"].split("CREATE TABLE")
 
-            # filter tables (there we have chunks of schema not only table names)
-            # take only those in selected table list
+            # filter chunks
+            # take only those whose tables are in selected table list
             # starting from tables we avoid mistakes in the tables list
             tables = [
                 t_chunk
@@ -164,6 +166,8 @@ class SchemaManager23AI(SchemaManager):
             for doc in docs:
                 self.logger.info(" Deleting %s", doc.metadata["table"])
                 self.delete_from_schema_manager(conn, doc.metadata["table"])
+
+            conn.commit()
 
             # loading
             self.logger.info("Saving new records to Vector Store...")
