@@ -96,7 +96,97 @@ class SchemaManager23AI(SchemaManager):
 
         except Exception as e:
             self.logger.error("Error in SchemaManager:init_schema_manager...")
-            self.logger.error("Error in init Schema Manager !!!")
+            self.logger.error(e)
+        finally:
+            self._close_connection(conn)
+
+    def delete_from_schema_manager(self, conn, t_name):
+        """
+        Delete the record for a selected table from the VECTOR tables
+        """
+        try:
+            # Create a cursor object
+            cursor = conn.cursor()
+
+            # SQL statement to delete a record where t_name matches
+            sql = f"DELETE FROM {VECTOR_TABLE_NAME} WHERE json_value(METADATA, '$.source') = :t_name_value"
+
+            # Execute the DELETE SQL with the value of t_name
+            cursor.execute(sql, {"t_name_value": t_name})
+
+        except Exception as e:
+            self.logger.error("Error in SchemaManager:delete_schema_manager...")
+            self.logger.error(e)
+
+    def update_schema_manager(self, selected_tables_list):
+        """
+        Update the data for selected tables in the Schema Manager DB
+
+        update does delete and insert
+        """
+        self.logger.info("Selected tables: %s", selected_tables_list)
+
+        try:
+            self.logger.info("Reading schema from DB...")
+
+            raw_schema = self._get_raw_schema()
+
+            # split the schema for tables
+            # tables is a list of table chunk (chunks of schema desc)
+            tables = raw_schema["table_info"].split("CREATE TABLE")
+
+            # filter tables (there we have chunks of schema not only table names)
+            # take only those in selected table list
+            # starting from tables we avoid mistakes in the tables list
+            tables = [
+                t_chunk
+                for t_chunk in tables
+                if self._get_table_name_from_table_chunk(t_chunk).upper()
+                in selected_tables_list
+            ]
+
+            # read the samples queries for each table and
+            # create the structure with table_name, sample_queries
+            tables_dict = self._read_samples_query()
+
+            # populate summaries and tables_list
+            self._process_schema(tables, tables_dict)
+
+            # prepare the docs to be embedded, only for selected tables
+            docs = self._prepare_documents()
+
+            # update the vector store
+            self.logger.info("Updating Oracle 23AI...")
+
+            conn = self._get_db_connection()
+
+            # delete
+            for doc in docs:
+                self.logger.info(" Deleting %s", doc.metadata["table"])
+                self.delete_from_schema_manager(conn, doc.metadata["table"])
+
+            # loading
+            self.logger.info("Saving new records to Vector Store...")
+
+            v_store = OracleVS(
+                client=conn,
+                table_name=VECTOR_TABLE_NAME,
+                distance_strategy=DISTANCE_STRATEGY,
+                embedding_function=self.embed_model,
+            )
+            v_store.add_documents(docs)
+
+            self.logger.info("Processed %s tables...", len(docs))
+            self.logger.info("")
+            self.logger.info("SchemaManager update done!")
+
+            # end the transaction
+            conn.commit()
+
+            conn.close()
+
+        except Exception as e:
+            self.logger.error("Error in SchemaManager:update_schema_manager...")
             self.logger.error(e)
         finally:
             self._close_connection(conn)

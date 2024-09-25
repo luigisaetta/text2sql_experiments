@@ -16,8 +16,6 @@ from abc import ABC, abstractmethod
 import oracledb
 from langchain_core.prompts import PromptTemplate
 from langchain.docstore.document import Document
-from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
 
 from prompt_template import PROMPT_TABLE_SUMMARY, PROMPT_RERANK
 from config import (
@@ -57,20 +55,6 @@ class SchemaManager(ABC):
         """ "
         to be implemented
         """
-
-    def _get_raw_schema2(self):
-        """
-        This is the old code, slow on Oracle Ebiz
-        Connect to data DB and get raw DB schema
-
-        Here only before all tests
-        """
-        llm_s = self.llm_manager.llm_models[INDEX_MODEL_FOR_SUMMARY]
-
-        toolkit = SQLDatabaseToolkit(db=SQLDatabase(self.db_manager.engine), llm=llm_s)
-        raw_schema = toolkit.get_context()
-
-        return raw_schema
 
     def _get_raw_schema(self, schema_owner=DB_USER, n_samples=N_SAMPLES):
         """
