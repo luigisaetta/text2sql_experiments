@@ -94,6 +94,9 @@ def init_session():
 
 
 def abbreviate_question(question, max_length=40):
+    """
+    Abbreviate the sample question for better presentation in UI
+    """
     if len(question) > max_length:
         return question[:max_length] + "..."
     return question
@@ -111,7 +114,7 @@ st.sidebar.title("Sample questions")
 sample_questions = [
     "What is the total number of employees in the company as of today?",
     "Can you show me a list of all departments along with the headcount in each department?",
-    "What is the average salary across all departments?",
+    "Retrieve the product names and the total amount sold for each product.",
     "Which employees have joined the company in 2018, and what are their respective departments?",
     "How many products have been sold in the last 30 days, categorized by region and product type?",
 ]
