@@ -94,9 +94,6 @@ class SchemaManager23AI(SchemaManager):
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:init_schema_manager...")
 
-        finally:
-            self._close_connection(conn)
-
     def delete_from_schema_manager(self, conn, t_name):
         """
         Delete the record for a selected table from the VECTOR tables
@@ -158,40 +155,32 @@ class SchemaManager23AI(SchemaManager):
             # update the vector store
             self.logger.info("Updating Oracle 23AI...")
 
-            conn = self._get_db_connection()
+            with self._get_db_connection() as conn:
+                # delete record in vector store for selected tables
+                for doc in docs:
+                    self.logger.info(" Deleting %s", doc.metadata["table"])
+                    self.delete_from_schema_manager(conn, doc.metadata["table"])
 
-            # delete
-            for doc in docs:
-                self.logger.info(" Deleting %s", doc.metadata["table"])
-                self.delete_from_schema_manager(conn, doc.metadata["table"])
+                # loading
+                self.logger.info("Saving new records to Vector Store...")
 
-            conn.commit()
+                v_store = OracleVS(
+                    client=conn,
+                    table_name=VECTOR_TABLE_NAME,
+                    distance_strategy=DISTANCE_STRATEGY,
+                    embedding_function=self.embed_model,
+                )
+                v_store.add_documents(docs)
 
-            # loading
-            self.logger.info("Saving new records to Vector Store...")
+                self.logger.info("Processed %s tables...", len(docs))
+                self.logger.info("")
+                self.logger.info("SchemaManager update done!")
 
-            v_store = OracleVS(
-                client=conn,
-                table_name=VECTOR_TABLE_NAME,
-                distance_strategy=DISTANCE_STRATEGY,
-                embedding_function=self.embed_model,
-            )
-            v_store.add_documents(docs)
-
-            self.logger.info("Processed %s tables...", len(docs))
-            self.logger.info("")
-            self.logger.info("SchemaManager update done!")
-
-            # end the transaction
-            conn.commit()
-
-            conn.close()
+                # end the transaction
+                conn.commit()
 
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:update_schema_manager...")
-
-        finally:
-            self._close_connection(conn)
 
     #
     # better exception logging
@@ -225,37 +214,32 @@ class SchemaManager23AI(SchemaManager):
         self.logger.info("Reading sample queries...")
 
         select_query = f"SELECT table_name, sample_query FROM {self.TABLE_NAME_SQ}"
+        # Create the target structure
+        tables_dict = {}
 
         try:
-            conn = self._get_db_connection()
+            with self._get_db_connection() as conn:
+                cursor = conn.cursor()
 
-            cursor = conn.cursor()
+                cursor.execute(select_query)
 
-            cursor.execute(select_query)
+                # loop over all rows
+                for table_name, sample_query in cursor:
+                    # Normalize table name in upper case
+                    table_name = table_name.upper()
 
-            # Create the target structure
-            tables_dict = {}
+                    # add sample query in the list in dictiornary
+                    if table_name in tables_dict:
+                        tables_dict[table_name]["sample_queries"].append(sample_query)
+                    else:
+                        tables_dict[table_name] = {"sample_queries": [sample_query]}
 
-            # loop over all rows
-            for table_name, sample_query in cursor:
-                # Normalize table name in upper case
-                table_name = table_name.upper()
+                cursor.close()
 
-                # add sample query in the list in dictiornary
-                if table_name in tables_dict:
-                    tables_dict[table_name]["sample_queries"].append(sample_query)
-                else:
-                    tables_dict[table_name] = {"sample_queries": [sample_query]}
-
-            self.logger.info("Reading and storing Sample queries OK...")
+            self.logger.info("Sample queries read successfully.")
 
         except oracledb.DatabaseError as e:
             self._handle_exception(e, "Error in SchemaManager:read_samples_query...")
-            tables_dict = {}
-        finally:
-            if cursor:
-                cursor.close()
-            self._close_connection(conn)
 
         return tables_dict
 
@@ -286,51 +270,51 @@ class SchemaManager23AI(SchemaManager):
         # step1: similarity search: returns TOP_K
         # step2: rerank, using LLM and returns TOP_N
         try:
-            conn = self._get_db_connection()
+            with self._get_db_connection() as conn:
 
-            results = self._similarity_search(query, conn)
+                results = self._similarity_search(query, conn)
 
-            # now generate the portion of schema with the retrieved tables
+                # now generate the portion of schema with the retrieved tables
 
-            # step 1: TOP_K
-            restricted_schema_parts = []
+                # step 1: TOP_K
+                restricted_schema_parts = []
 
-            self.logger.info("Identifying relevant tables for query...")
-            for doc in results:
-                table_name = doc.metadata.get("table")
-                self.logger.info("- %s", table_name)
+                self.logger.info("Identifying relevant tables for query...")
+                for doc in results:
+                    table_name = doc.metadata.get("table")
+                    self.logger.info("- %s", table_name)
 
-                # retrieve the portion of schema for the table
-                table_chunk = doc.metadata.get("table_chunk")
+                    # retrieve the portion of schema for the table
+                    table_chunk = doc.metadata.get("table_chunk")
 
-                if table_chunk:
-                    restricted_schema_parts.append(table_chunk)
-                else:
-                    self.logger.warning("No chunk found for table %s", table_name)
+                    if table_chunk:
+                        restricted_schema_parts.append(table_chunk)
+                    else:
+                        self.logger.warning("No chunk found for table %s", table_name)
 
-            # Join the accumulated chunks into a single string
-            restricted_schema = "".join(restricted_schema_parts)
+                # Join the accumulated chunks into a single string
+                restricted_schema = "".join(restricted_schema_parts)
 
-            # added this part (20/09) for reranking table list
-            if ENABLE_RERANKING and len(restricted_schema) > 0:
-                # step2
-                restricted_schema2_parts = []
-                # rerank  and restrict (call LLM)
-                table_top_n_list = self._rerank_table_list(query, restricted_schema)
+                # added this part (20/09) for reranking table list
+                if ENABLE_RERANKING and len(restricted_schema) > 0:
+                    # step2
+                    restricted_schema2_parts = []
+                    # rerank  and restrict (call LLM)
+                    table_top_n_list = self._rerank_table_list(query, restricted_schema)
 
-                self.logger.info("Reranker result:")
-                self.logger.info(table_top_n_list)
-                self.logger.info("")
+                    self.logger.info("Reranker result:")
+                    self.logger.info(table_top_n_list)
+                    self.logger.info("")
 
-                for table_name in table_top_n_list:
-                    # find the table chunk
-                    for doc in results:
-                        if doc.metadata.get("table") == table_name.upper():
-                            table_chunk = doc.metadata.get("table_chunk")
-                            restricted_schema2_parts.append(table_chunk)
-                            break
+                    for table_name in table_top_n_list:
+                        # find the table chunk
+                        for doc in results:
+                            if doc.metadata.get("table") == table_name.upper():
+                                table_chunk = doc.metadata.get("table_chunk")
+                                restricted_schema2_parts.append(table_chunk)
+                                break
 
-                restricted_schema = "".join(restricted_schema2_parts)
+                    restricted_schema = "".join(restricted_schema2_parts)
 
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:get_restricted_schema...")
