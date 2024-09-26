@@ -13,20 +13,26 @@ from examples_4_prompt import EXAMPLES
 # improved (9/9/2024)
 REPHRASE_PROMPT = """
 User has made an initial request, reported below.
+
+User request:
+ {user_request}
+
 A SQL query has been executed to retrieve relevant data.
+
+Data retrieved from database:
+ {data}
+
 Explain the provided data in a clear and human understandable format.
 Be assertive.
 Format response in markdown.
 
-## plotting instructions
-If the request asks for plotting the data retrieved, generate the correct Python code
-to plot the data using matplotlib library.
+## Plotting instructions
+If and only the request asks for plotting, or to generate the code for plotting,  
+generate the correct Python code to plot the data using matplotlib library.
 Align labels at 90 degrees.
- 
- User request:
- {user_request}
- Data retrieved from database:
- {data}"""
+If the request doesn't ask for plotting or generating code, don't add any comments, 
+simply do not generate the code.
+"""
 
 #
 # This is the template for the prompt used to generate the SQl query

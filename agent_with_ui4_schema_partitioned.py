@@ -246,8 +246,9 @@ if submit_button and user_query:
                                 )
 
                                 # execute and show in streamlit
-                                exec(plot_code)
-                                st.pyplot(plt)
+                                if plot_code is not None and len(plot_code) > 0:
+                                    exec(plot_code)
+                                    st.pyplot(plt)
 
                 except Exception as e:
                     logger.error("Error interpreting results: %s", e)
