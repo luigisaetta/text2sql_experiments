@@ -1,0 +1,34 @@
+# environment to be used has name: text2sql
+
+# env creation
+conda create -n text2sql python==3.11
+
+# mandatory packages
+pip install oci -U
+pip install langchain -U
+pip install langchain-community -U
+pip install oracledb
+pip install pandas
+pip install streamlit
+pip install fastapi
+pip install uvicorn
+pip install matplotlib
+pip install tqdm
+
+# optional
+# to be installed only if you want to test Jupyter NB
+pip install jupyterlab
+# to be installed to run tests
+pip install bert_score
+
+
+# to check code
+pip install black
+pip install pylint
+
+# versions:
+* compatible with latest OCI Python SDK version (22/09)
+* Langchain 0.3
+for more details, see: requirements
+
+

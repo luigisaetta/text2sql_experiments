@@ -1,0 +1,30 @@
+What is the appointment that started most recently?
+List the name of physicians who took some appointment.
+What are the names of all the physicians who took appointments.
+List the name of physicians who never took any appointment.
+Find the names of all physicians and their primary affiliated departments' names.
+What is the name of the patient who made the most recent appointment?
+Count the number of patients who stayed in room 112.
+How many patients' prescriptions are made by physician JOHN DORIAN
+show patients' prescriptions made by physician JOHN DORIAN?
+Find the name of medication used on the patient who stays in room 111
+What is the name of the nurse has the most appointments?
+How many patients do each physician take care of? List their names and number of patients they take care of.
+How many rooms does each block floor have?
+What is the names of the physicians who prescribe medication Thesisin?
+Find the name and position of physicians who prescribe some medication whose brand is X?
+Find the patient who has the most recent undergoing treatment?
+List the names of all distinct nurses ordered by alphabetical order?
+List the names of all distinct medications, ordered in an alphabetical order.
+What are the names of the physician who prescribed the highest dose?
+Find the physician who prescribed the highest dose. What is his or her name?
+What nurses are on call with block floor 1 and block code 1? Tell me their names.
+What are the highest cost, lowest cost and average cost of medical procedures?
+List the name and cost of all medical procedures sorted by the cost from the highest to the lowest.
+Sort the list of names and costs of all procedures in the descending order of cost.
+Find the three most expensive medical procedures.
+Find the names of procedures which physician JOHN WEN was trained in.
+Find the name of physicians who are affiliated with both SURGERY and PSYCHIATRY departments.
+Find the names of patients who are not using the medication of Procrastin-X.
+show all the appointments
+What are the distinct names of nurses on call?

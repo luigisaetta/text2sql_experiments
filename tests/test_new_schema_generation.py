@@ -1,5 +1,7 @@
 """
 To test a newer and faster method for metadata and samples generation
+
+25/09 modified adding comments on columns
 """
 
 import oracledb
@@ -80,11 +82,31 @@ def get_raw_schema(connection, schema_owner=DB_USER, n_samples=N_SAMPLES):
             ddl_cleaned = ddl_cleaned.replace('DEFAULT COLLATION "USING_NLS_COMP"', "")
             # remove schema from ddl
             ddl_cleaned = ddl_cleaned.replace(f'"{schema_owner}".', "")
-            # remove "
+            # remove " arounfd table and columns names
             ddl_cleaned = ddl_cleaned.replace('"', "")
 
             # Build output for table info
             table_info = f"{ddl_cleaned}\n\n"
+
+            # ADD COLUMN COMMENTS HERE
+            cursor.execute(
+                """
+                SELECT column_name, comments
+                FROM all_col_comments
+                WHERE owner = :schema_owner AND table_name = :table_name
+                """,
+                schema_owner=schema_owner,
+                table_name=table_name,
+            )
+
+            column_comments = cursor.fetchall()
+
+            if column_comments:
+                table_info += "--- Column Comments ---\n"
+                for column_name, comment in column_comments:
+                    if comment:
+                        table_info += f"Column {column_name}: {comment}\n"
+                table_info += "\n"
 
             if DEBUG:
                 logger.info(table_info)
@@ -146,6 +168,8 @@ def get_raw_schema(connection, schema_owner=DB_USER, n_samples=N_SAMPLES):
 # Connect to Oracle database
 conn = oracledb.connect(**CONNECT_ARGS)
 
+logger.info("")
+logger.info("Connecting to DB Schema: %s", DB_USER)
 logger.info("")
 logger.info("Reading DB schema...")
 logger.info("")

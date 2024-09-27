@@ -1,0 +1,3 @@
+Get the list of countries, where our company has offices, in the 'Europe' region along with their cities. Use HR schema.
+Get the list of cities where our company has offices along with their corresponding country names.
+List the countries and the number of locations for our company in each country.
