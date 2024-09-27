@@ -1,0 +1,8 @@
+Contar el número de pacientes asignados a cada doctor
+Encontrar todos los pacientes con metástasis pulmonar
+Encontrar el doctor que ha estado practicando por más tiempo
+Muestra todos los doctores que dedican más del 50% de su tiempo profesional al tratamiento de pacientes
+Listar todos los pacientes con metástasis hepática
+Listar doctores que han estado practicando por menos de 5 años
+Listar todos los doctores y el número de años que han estado practicando su especialidad
+Listar doctores que dedican la mayor parte de su tiempo a investigación o tareas administrativas
