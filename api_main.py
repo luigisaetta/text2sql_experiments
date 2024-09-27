@@ -5,7 +5,7 @@ REST API for SQL query generation
 import json
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -23,7 +23,8 @@ from config import (
     EMBED_MODEL_NAME,
     EMBED_ENDPOINT,
     TEMPERATURE,
-    PORT,
+    API_HOST,
+    API_PORT,
 )
 from config_private import COMPARTMENT_OCID
 
@@ -51,9 +52,6 @@ llm_manager = LLMManager(
     MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
 )
 
-engine = db_manager.engine
-# 0 is llama3-70B
-llm1 = llm_manager.llm_models[0]
 
 # Initialize the agent, only once !!!
 ai_sql_agent = AISQLAgent(
@@ -105,13 +103,20 @@ def generate(request: GenerateSQLInput):
 
     logger.info("User query: %s", user_query)
 
+    if not user_query:
+        raise HTTPException(status_code=400, detail="Empty user query")
+
     content = ""
 
-    if len(user_query) > 0:
-        sql_query = ai_sql_agent.generate_sql_query(user_query, user_group_id=None)
+    try:
+        if len(user_query) > 0:
+            sql_query = ai_sql_agent.generate_sql_query(user_query, user_group_id=None)
 
-        if len(sql_query) > 0:
-            content = sql_query
+            if len(sql_query) > 0:
+                content = sql_query
+    except Exception as e:
+        logger.error("Error generating SQL: %s", e)
+        raise HTTPException(status_code=500, detail="Error generating SQL query")
 
     json_data = json.dumps(content)
 
@@ -136,6 +141,7 @@ def generate_and_exec_sql(request: GenerateSQLInput):
         if len(sql_query) > 0:
             rows = db_manager.execute_sql(sql_query)
 
+    # serialize each row in a dict
     rows_ser = [to_dict(row) for row in rows]
 
     json_data = json.dumps(rows_ser)
@@ -148,11 +154,10 @@ def explain_ai_response(request: AIAnswerInput):
     """
     To explain the dataset retrieved with AI
     """
-    json_data = "To be implemented..."
+    content = "To be implemented..."
 
-    return Response(content=json_data, media_type=MEDIA_TYPE_JSON)
+    return Response(content, media_type=MEDIA_TYPE_JSON)
 
 
 if __name__ == "__main__":
-    # to be faster schema is global
-    uvicorn.run(host="0.0.0.0", port=PORT, app=app)
+    uvicorn.run(host=API_HOST, port=API_PORT, app=app)

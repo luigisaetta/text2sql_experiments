@@ -164,7 +164,8 @@ class SchemaManager(ABC):
                 # Query to get the first 3 records from the table
                 try:
                     cursor.execute(
-                        f"SELECT * FROM {schema_owner}.{table_name} FETCH FIRST {n_samples} ROWS ONLY"
+                        f"""SELECT * FROM {schema_owner}.{table_name} 
+                        FETCH FIRST {n_samples} ROWS ONLY"""
                     )
                     records = cursor.fetchall()
 

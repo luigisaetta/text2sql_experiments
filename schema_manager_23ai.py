@@ -103,7 +103,7 @@ class SchemaManager23AI(SchemaManager):
             cursor = conn.cursor()
 
             # SQL statement to delete a record where t_name matches
-            sql = f"""DELETE FROM {VECTOR_TABLE_NAME} WHERE 
+            sql = f"""DELETE FROM {VECTOR_TABLE_NAME} WHERE
                    json_value(METADATA, '$.table') = :t_name_value
                    """
 
