@@ -1,9 +1,8 @@
 """"
 Load 23AI Vector Store for restricted schema
 
-This is the script to be used to do the first load of the SCHEMA_VECTORS
-(17/0) for now, no updates. If you change  the data schema or the sample_queries list
-you need to relaunch this script. It will drop and reload the collection
+This is the script to be used to do the first/complete load of the SCHEMA_VECTORS.
+It will drop and reload the collection.
 """
 
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch

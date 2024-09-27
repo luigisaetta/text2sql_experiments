@@ -1,5 +1,7 @@
 """
 Batch to update Vector Store only for some tables
+
+You need to give the list of the names of the tables
 """
 
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
