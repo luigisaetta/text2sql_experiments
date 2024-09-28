@@ -42,7 +42,7 @@ try:
         logger.info("Deleted old data...")
 
         # Loop over the JSON data
-        for i, entry in enumerate(data):
+        for entry in data:
             table_name = entry["table"]  # Get the table name
             sample_queries = entry["sample_queries"]  # Get the list of sample queries
 
@@ -55,7 +55,7 @@ try:
         conn.commit()
         cursor.close()
 
-        logger.info("%s samples queries inserted successfully!", i + 1)
+        logger.info("%s samples queries inserted successfully!", len(data))
         logger.info("")
 
 

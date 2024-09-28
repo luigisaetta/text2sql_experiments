@@ -80,7 +80,7 @@ class SchemaManager23AI(SchemaManager):
 
             # reload all the tables and schemas in vector store
             # replacing old data
-            with self._get_db_connection() as conn:
+            with self._get_vector_db_connection() as conn:
                 OracleVS.from_documents(
                     docs,
                     self.embed_model,
@@ -155,7 +155,7 @@ class SchemaManager23AI(SchemaManager):
             # update the vector store
             self.logger.info("Updating Oracle 23AI...")
 
-            with self._get_db_connection() as conn:
+            with self._get_vector_db_connection() as conn:
                 # delete record in vector store for selected tables
                 for doc in docs:
                     self.logger.info(" Deleting %s", doc.metadata["table"])
@@ -182,30 +182,6 @@ class SchemaManager23AI(SchemaManager):
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:update_schema_manager...")
 
-    #
-    # better exception logging
-    #
-    def _handle_exception(self, e, context: str = ""):
-        """Log the exception and provide context."""
-        self.logger.error("Error in %s: %s", context, e)
-
-    def _get_db_connection(self):
-        """Return a database connection to the vector store."""
-        return oracledb.connect(**CONNECT_ARGS_VECTOR)
-
-    def _close_connection(self, conn):
-        """
-        close properly the conn
-
-        yes, it is annoying, but we need to do this way
-        """
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            # ignore, connection is closed
-            pass
-
     def _read_samples_query(self):
         """
         Reads sample queries from the DB.
@@ -218,7 +194,7 @@ class SchemaManager23AI(SchemaManager):
         tables_dict = {}
 
         try:
-            with self._get_db_connection() as conn:
+            with self._get_vector_db_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute(select_query)
@@ -270,7 +246,7 @@ class SchemaManager23AI(SchemaManager):
         # step1: similarity search: returns TOP_K
         # step2: rerank, using LLM and returns TOP_N
         try:
-            with self._get_db_connection() as conn:
+            with self._get_vector_db_connection() as conn:
 
                 results = self._similarity_search(query, conn)
 
@@ -319,8 +295,19 @@ class SchemaManager23AI(SchemaManager):
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:get_restricted_schema...")
             restricted_schema = ""
-        finally:
-            # This block will always execute, so we ensure the connection is closed
-            self._close_connection(conn)
 
         return restricted_schema
+
+    #
+    # Resource management and helper functions
+    #
+    #
+    # better exception logging
+    #
+    def _handle_exception(self, e, context: str = ""):
+        """Log the exception and provide context."""
+        self.logger.error("Error in %s: %s", context, e)
+
+    def _get_vector_db_connection(self):
+        """Return a database connection to the vector store."""
+        return oracledb.connect(**CONNECT_ARGS_VECTOR)

@@ -34,6 +34,10 @@ SAMPLES_FILE = "sample_queries.json"
 class SchemaManager(ABC):
     """
     To handle schema metadata and similarity search
+
+    this is an abstract class... must be implemented
+        It is abstract since it is not tied to a specific vector store
+        but it is specialized to use Oracle as data store
     """
 
     def __init__(self, db_manager, llm_manager, embed_model, logger):
@@ -53,12 +57,22 @@ class SchemaManager(ABC):
     @abstractmethod
     def init_schema_manager(self):
         """ "
+        Abstract method to be implemented by subclasses to initialize schema management logic.
+        """
+
+    @abstractmethod
+    def get_restricted_schema(self, query):
+        """
+        Returns the portion of the schema relevant to the user query, based on similarity search.
+
+        query: the user request in NL
+
         to be implemented
         """
 
     def _get_raw_schema(self, schema_owner=DB_USER, n_samples=N_SAMPLES):
         """
-        This is the new code
+        This is the new code (no LangChain for schema)
         Connect to data DB and get raw DB schema
 
         This function reads metadata and sample data for each table
@@ -213,43 +227,12 @@ class SchemaManager(ABC):
 
         return output_dict
 
-    def _remove_compress_line(self, chunk):
-        """ "
-        remove the line containing COMPRESS FOR...
-        to reduce prompt length
-        """
-        # Split the string into lines
-        lines = chunk.splitlines()
-
-        # Filter out the line containing "COMPRESS"
-        lines = [line for line in lines if "COMPRESS" not in line]
-
-        # Join the lines back into a single string
-        updated_chunk = "\n".join(lines)
-
-        return updated_chunk
-
-    def _get_table_name_from_table_chunk(self, chunk):
-        """
-        extract only the table name
-        """
-        table_name = ""
-
-        if chunk.strip():
-            match = re.search(r"^\s*([a-zA-Z_][\w]*)\s*\(", chunk)
-
-            if match:
-                table_name = match.group(1)
-                table_name = table_name.upper()
-
-        return table_name
-
     def _process_schema(self, tables, tables_dict):
         """
         populate:
-        self.tables_list
-        self.tables_chunk
-        self.summaries
+        * self.tables_list
+        * self.tables_chunk
+        * self.summaries
         """
         try:
             self.tables_list = []
@@ -348,7 +331,7 @@ class SchemaManager(ABC):
 
             self.logger.info("Reading and storing Sample queries OK...")
         except Exception as e:
-            self.logger.error("Error reading and storing sample queries...")
+            self.logger.error("Error reading sample queries...")
             self.logger.error("Check file: %s", SAMPLES_FILE)
             self.logger.error(e)
             tables_dict = {}
@@ -385,41 +368,6 @@ class SchemaManager(ABC):
             docs.append(doc)
         return docs
 
-    def _find_chunk_by_table_name(self, table_name):
-        """
-        Finds the chunk of schema corresponding to the given table name.
-        """
-        # loop in the dictionary list
-        for entry in self.tables_chunk:
-            if entry["table"] == table_name:
-                return entry["chunk"]
-        return None
-
-    @abstractmethod
-    def get_restricted_schema(self, query):
-        """
-        Returns the portion of the schema relevant to the user query, based on similarity search.
-
-        query: the user request in NL
-
-        to be implemented
-        """
-
-    def _extract_list(self, input_string):
-        """
-        Extract the content between the triple backticks
-        Function used by _rerank_table_list
-        """
-        extracted_string = input_string.strip().strip("`")
-
-        # Remove the square brackets and extra whitespace
-        cleaned_string = extracted_string.replace("[", "").replace("]", "").strip()
-
-        # Split the string by commas and remove quotes/extra spaces
-        tables_list = [item.strip().strip('"') for item in cleaned_string.split(",")]
-
-        return tables_list
-
     def _rerank_table_list(self, query, top_k_schemas):
         """
         Get TOP_N tables from step1 in schema selection and use an LLM
@@ -447,3 +395,78 @@ class SchemaManager(ABC):
         reranked_tables_list = self._extract_list(result.content)
 
         return reranked_tables_list
+
+    #
+    # Resource management and helper functions
+    #
+    def _get_table_name_from_table_chunk(self, chunk):
+        """
+        extract only the table name
+        """
+        table_name = ""
+
+        if chunk.strip():
+            match = re.search(r"^\s*([a-zA-Z_][\w]*)\s*\(", chunk)
+
+            if match:
+                table_name = match.group(1)
+                table_name = table_name.upper()
+
+        return table_name
+
+    def _find_chunk_by_table_name(self, table_name):
+        """
+        Finds the chunk of schema corresponding to the given table name.
+        """
+        # loop in the dictionary list
+        for entry in self.tables_chunk:
+            if entry["table"] == table_name:
+                return entry["chunk"]
+        return None
+
+    def _extract_list(self, input_string):
+        """
+        Extract the content between the triple backticks
+        Function used by _rerank_table_list
+        """
+        extracted_string = input_string.strip().strip("`")
+
+        # Remove the square brackets and extra whitespace
+        cleaned_string = extracted_string.replace("[", "").replace("]", "").strip()
+
+        # Split the string by commas and remove quotes/extra spaces
+        tables_list = [item.strip().strip('"') for item in cleaned_string.split(",")]
+
+        return tables_list
+
+    def _remove_compress_line(self, chunk):
+        """ "
+        remove the line containing COMPRESS FOR...
+        fro the chunk of schema
+        to reduce prompt length
+        """
+        # Split the string into lines
+        lines = chunk.splitlines()
+
+        # Filter out the line containing "COMPRESS"
+        lines = [line for line in lines if "COMPRESS" not in line]
+
+        # Join the lines back into a single string
+        updated_chunk = "\n".join(lines)
+
+        return updated_chunk
+
+    def _close_connection(self, conn):
+        """
+        close properly the conn
+
+        yes, it is annoying, but we need to do this way
+
+        can be used for data or vector schema connection... that's the reason it is here
+        """
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            # ignore, connection is closed
+            pass
