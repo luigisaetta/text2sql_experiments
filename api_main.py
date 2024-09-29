@@ -154,9 +154,9 @@ def explain_ai_response(request: AIAnswerInput):
     """
     To explain the dataset retrieved with AI
     """
-    content = "To be implemented..."
+    logger.info("Explain: %s", request)
 
-    return Response(content, media_type=MEDIA_TYPE_JSON)
+    raise NotImplementedError("Explain not yet implemented.")
 
 
 if __name__ == "__main__":

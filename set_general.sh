@@ -1,0 +1,2 @@
+cp prompt_template_general.py prompt_template.py
+cp examples_4_prompt_general.py examples_4_prompt.py

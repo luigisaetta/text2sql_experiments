@@ -111,14 +111,28 @@ st.title("Oracle SQL Agent V2.1")
 # section to handle sample question
 st.sidebar.title("Sample questions")
 
-sample_questions = [
-    "What is the total number of employees in the company as of today?",
-    "Can you show me a list of all departments along with the headcount in each department?",
-    "Retrieve the product names and the total amount sold for each product.",
-    "Which employees have joined the company in 2018, and what are their respective departments?",
-    "How many products have been sold in the last 30 days, categorized by region and product type?",
-]
+# sample_questions = [
+#    "What is the total number of employees in the company as of today?",
+#    "Can you show me a list of all departments along with the headcount in each department?",
+#    "Retrieve the product names and the total amount sold for each product.",
+#    "Which employees have joined the company in 2018, and what are their respective departments?",
+#    """How many products have been sold in the last 30 days,
+# categorized by region and product type?""",
+# ]
 
+# for e-biz
+sample_questions = [
+    "show all the distinct absence types that have been reported by employee",
+    "show distinct absence types and the number of employee who reported them in 2017",
+    "show all the employees names that have reported absence type name like 'Sick%'.",
+    """show all the employee name that have reported absence type like 'Sick%' 
+and the total number of hours reported. Order by number of hours descending""",
+    """For every department shows the department name, the absence type name 
+and total number of hour reported""",
+    """show the names of all employees who registered absences started in 2017 
+and the total hours for each absence type name""",
+    "show all the employee located in US who have reported absences in 2017",
+]
 # Create abbreviated versions of the sample questions for the sidebar
 abbreviated_questions = [abbreviate_question(q) for q in sample_questions]
 

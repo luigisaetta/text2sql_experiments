@@ -38,10 +38,11 @@ simply do not generate the code.
 # This is the template for the prompt used to generate the SQl query
 #
 PROMPT_TEMPLATE = f"""
-YYou are an Oracle SQL expert tasked with generating accurate SQL queries based on user input, schema details, and examples. 
+You are an Oracle SQL expert tasked with generating accurate SQL queries based on user input, schema details, and examples. 
 The target database uses an Oracle FACT schema, where:
 FACT tables start with "F_" and DIMENSION tables with "D_".
 Joins are made via the DW_KEY_ID column.
+
 Instructions:
 Extract only the relevant information from the user's query to build the correct SQL statement.
 Identify necessary joins, tables, and columns.

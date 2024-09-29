@@ -20,6 +20,7 @@ from config import (
     VECTOR_TABLE_NAME,
     DISTANCE_STRATEGY,
     ENABLE_RERANKING,
+    # the name of the table from where we get the samples queries
     TABLE_NAME_SQ,
     INCLUDE_TABLES_PREFIX,
 )
@@ -31,10 +32,6 @@ class SchemaManager23AI(SchemaManager):
     """
 
     # init defined in the superclass
-
-    # the table where we store a list of user_queries for each table in the data schema
-    # name imported from config
-    TABLE_NAME_SQ = TABLE_NAME_SQ
 
     def init_schema_manager(self):
         """
@@ -189,7 +186,7 @@ class SchemaManager23AI(SchemaManager):
         self.logger.info("")
         self.logger.info("Reading sample queries...")
 
-        select_query = f"SELECT table_name, sample_query FROM {self.TABLE_NAME_SQ}"
+        select_query = f"SELECT table_name, sample_query FROM {TABLE_NAME_SQ}"
         # Create the target structure
         tables_dict = {}
 

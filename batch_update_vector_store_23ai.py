@@ -19,7 +19,7 @@ from config import (
 )
 from config_private import COMPARTMENT_OCID
 
-tables_list = ["APPO", "AP_INVOICES", "EMPLOYEES"]
+tables_list = ["D_EMPLOYEE", "D_DEPARTMENT"]
 
 #
 # Main
