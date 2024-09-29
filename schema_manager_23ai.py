@@ -1,13 +1,14 @@
 """
-Schema Manager23AI
+Schema Manager 23AI
 
-specializes the class SchemaManager to use 23AI as VS
+This module extends the SchemaManager class to integrate 
+with 23AI as a Vector Store (VS).
+It handles the similarity search to find the TOP_N candidate 
+tables in a schema, executes the query, and returns 
+the relevant portion of the schema necessary to answer the query.
 
-handle the similarity search to find TOP_N candidate tables
-to execute the query and return the portion of schema 
-relevant to answer to the query
-
-number of tables is limited to TOP_N (see config)
+The number of candidate tables is limited to TOP_N 
+(configurable in the settings).
 """
 
 import oracledb
@@ -28,16 +29,27 @@ from config import (
 
 class SchemaManager23AI(SchemaManager):
     """
-    To handle schema metadata and similarity search
+    Specialized class for managing schema metadata 
+    and performing similarity searches using the 
+    23AI Vector Store system.
+
+    Inherits from SchemaManager to extend 
+    its functionality with 23AI capabilities.
     """
 
     # init defined in the superclass
 
     def init_schema_manager(self):
         """
-        Initializes the SchemaManager.
+        Initializes the Schema Manager by loading the schema data 
+        into the Schema Manager database.
 
-        reload the data in the Schema Manager DB
+        This method reads the schema information from the database,
+        processes the table chunks, and optionally filters them based 
+        on the prefix defined by INCLUDE_TABLES_PREFIX.
+
+        Raises:
+            Exception: If the schema cannot be loaded.
         """
         try:
             self.logger.info("Reading schema from DB...")
