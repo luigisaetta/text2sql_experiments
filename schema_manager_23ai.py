@@ -29,11 +29,11 @@ from config import (
 
 class SchemaManager23AI(SchemaManager):
     """
-    Specialized class for managing schema metadata 
-    and performing similarity searches using the 
+    Specialized class for managing schema metadata
+    and performing similarity searches using the
     23AI Vector Store system.
 
-    Inherits from SchemaManager to extend 
+    Inherits from SchemaManager to extend
     its functionality with 23AI capabilities.
     """
 
@@ -41,11 +41,11 @@ class SchemaManager23AI(SchemaManager):
 
     def init_schema_manager(self):
         """
-        Initializes the Schema Manager by loading the schema data 
+        Initializes the Schema Manager by loading the schema data
         into the Schema Manager database.
 
         This method reads the schema information from the database,
-        processes the table chunks, and optionally filters them based 
+        processes the table chunks, and optionally filters them based
         on the prefix defined by INCLUDE_TABLES_PREFIX.
 
         Raises:
