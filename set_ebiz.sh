@@ -6,3 +6,4 @@ cp config_ebiz.py config.py
 cp config_private_ebiz.py config_private.py
 cp prompt_template_ebiz.py prompt_template.py
 cp examples_4_prompt_ebiz.py examples_4_prompt.py
+cp agent_with_ui_v2_ebiz.py agent_with_ui_v2.py
