@@ -7,6 +7,8 @@ In addition, the code is changing frequently.
 
 ## Notes
 * for now the code has been tested only with **ADB**
+* in V2 the schem has been partitioned by tables. We store tables summaries in a Vector Store
+and appy similarity search.
 
 ## References
 * [Pinterest Text2SQL](https://medium.com/pinterest-engineering/how-we-built-text-to-sql-at-pinterest-30bad30dabff)

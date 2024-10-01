@@ -19,7 +19,7 @@ from config import (
 )
 from config_private import COMPARTMENT_OCID
 
-tables_list = ["T_MEDICO", "T_PACIENTE"]
+tables_list = ["D_ABSENCE_TYPE", "F_ABSENCE"]
 
 #
 # Main

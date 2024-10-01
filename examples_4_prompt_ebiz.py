@@ -23,4 +23,14 @@ FROM F_ABSENCE f JOIN D_EMPLOYEE e ON f.employee_wid = e.dw_key_id
 WHERE f.absence_start_indicator = 'Y' AND f.absence_dt_wid >= 20180101 
 AND f.absence_dt_wid < 20190101 GROUP BY e.emp_name ORDER BY total_hours DESC
 
+User Query: I need a report with all the absences registered in 2017. 
+For every department I want employees who have registered absences, the absence type name and the total hours 
+reported for each absence type.
+SQL Query: SELECT d_dept.department_name, d_emp.emp_name, d_absence_type.absence_type_name, SUM(f_absence.hours_duration) 
+AS total_hours_reported FROM F_ABSENCE f_absence JOIN D_EMPLOYEE d_emp ON f_absence.employee_wid = d_emp.dw_key_id 
+JOIN D_DEPARTMENT d_dept ON f_absence.dept_wid = d_dept.dw_key_id JOIN D_ABSENCE_TYPE d_absence_type 
+ON f_absence.absence_type_wid = d_absence_type.dw_key_id WHERE f_absence.absence_dt_wid >= 20170101 
+AND f_absence.absence_dt_wid < 20180101 GROUP BY d_dept.department_name, d_emp.emp_name, d_absence_type.absence_type_name 
+ORDER BY d_dept.department_name, total_hours_reported DESC
+
 """
