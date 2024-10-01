@@ -12,7 +12,7 @@ from utils import get_console_logger
 
 logger = get_console_logger()
 
-SAMPLES_FILE = "sample_queries.json"
+SAMPLES_FILE = "../sample_queries.json"
 
 with open(SAMPLES_FILE, "r", encoding="UTF-8") as file:
     data = json.load(file)

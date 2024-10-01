@@ -36,7 +36,7 @@ logger.info("Loading Schema Manager...")
 
 schema_manager = SchemaManager23AI(db_manager, llm_manager, embed_model, logger)
 
-conn = schema_manager._get_db_connection()
+conn = schema_manager._get_vector_db_connection()
 
 if conn.is_healthy():
     logger.info("")

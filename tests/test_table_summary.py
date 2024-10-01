@@ -38,11 +38,11 @@ ai_sql_agent = AISQLAgent(
 )
 
 # now battery of test using SH schema:
-# TESTS_FILE_NAME = "testsh50.txt"
+TESTS_FILE_NAME = "testsh50.txt"
 # TESTS_FILE_NAME = "testhr30.txt"
 # TESTS_FILE_NAME = "testhr_problems.txt"
 # TESTS_FILE_NAME = "testsh30_ita.txt"
-TESTS_FILE_NAME = "test_hospital.txt"
+# TESTS_FILE_NAME = "test_hospital.txt"
 
 # read the file with users requests
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
@@ -53,7 +53,7 @@ logger.info("Starting battery of test:")
 logger.info("")
 
 # to limit the number of test
-TO_TEST = 30
+TO_TEST = 50
 N_OK = 0
 
 for query in USER_QUERIES[:TO_TEST]:
@@ -67,7 +67,6 @@ for query in USER_QUERIES[:TO_TEST]:
     if len(sql_query) > 0:
         # ok generated
         N_OK += 1
-        logger.info("")
         logger.info("Query Generation OK !!!")
     else:
         logger.error("Query Generation KO !!!")

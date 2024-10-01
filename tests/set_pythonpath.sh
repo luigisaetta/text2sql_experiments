@@ -1,2 +1,2 @@
-export PYTHONPATH=.
+export PYTHONPATH=..
 
