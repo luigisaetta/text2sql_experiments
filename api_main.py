@@ -7,7 +7,7 @@ import json
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
 
 from ai_sql_agent import AISQLAgent
@@ -106,21 +106,15 @@ def generate(request: GenerateSQLInput):
     if not user_query:
         raise HTTPException(status_code=400, detail="Empty user query")
 
-    content = ""
-
     try:
         if len(user_query) > 0:
             sql_query = ai_sql_agent.generate_sql_query(user_query, user_group_id=None)
 
-            if len(sql_query) > 0:
-                content = sql_query
     except Exception as e:
         logger.error("Error generating SQL: %s", e)
         raise HTTPException(status_code=500, detail="Error generating SQL query")
 
-    json_data = json.dumps(content)
-
-    return Response(content=json_data, media_type=MEDIA_TYPE_JSON)
+    return JSONResponse(content={"generated_sql": sql_query})
 
 
 @app.post("/generate_and_exec_sql/", tags=["V1"])
