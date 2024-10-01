@@ -4,7 +4,8 @@
         "sample_queries": [
             "list top 5 invoices with highest amount",
             "list top 10 invoices with highest amount.",
-            "show me invoice 908290"
+            "show me invoice 908290",
+            "What is the total amount paid to suppliers in the AP_INVOICES table? Show supplier name. Limit to top 10 rows."
         ]
     },
     {
@@ -27,7 +28,8 @@
         "table": "CUSTOMERS",
         "sample_queries": [
             "list top 10 sales give customer name and product name.",
-            "List the product names, categories, customer names, and promotion names used for sales made in Europe."
+            "List the product names, categories, customer names, and promotion names used for sales made in Europe.",
+            "List the customer names their income levels and products purchased by customers from Japan."
         ]
     },
     {
@@ -48,14 +50,16 @@
         "sample_queries": [
             "Get the list of promotion names, customer names, cities, and regions for each sale made in Europe.",
             "describe the sales table, list all available columns.",
-            "list top 10 sales give customer name and product name"
+            "list top 10 sales give customer name and product name",
+            "List the product names categories customer regions and promotion names for sales made in North America."
         ]
     },
     {
         "table": "SUPPLIERS",
         "sample_queries": [
             "How many suppliers are there?",
-            "How many supplier are TAX AUTHORITY?"
+            "How many supplier are TAX AUTHORITY?",
+            "What is the total amount paid to suppliers in the AP_INVOICES table? Show supplier name. Limit to top 10 rows."
         ]
     },
     {
@@ -77,7 +81,8 @@
         "sample_queries": [
             "In how many distinct countries are people working in our company located?",
             "Get the list of countries in the 'Europe' region along with their cities.",
-            "Get the list of cities along with their corresponding country names."
+            "Get the list of cities along with their corresponding country names.",
+            "List the countries and the number of locations in each country."
         ]
     },
     {
@@ -99,6 +104,36 @@
         "sample_queries": [
             "Describe the table LOCATIONS",
             "Retrieve the names of all departments located in 'Tokyo'."
+        ]
+    },
+    {
+        "table": "D_EMPLOYEE",
+        "sample_queries": [
+            "List all the employee working in the department Accounting",
+            "List all the employees who have registered absences in 2018 and their departments.",
+            "List all the employees who have registered absences in 2018, their departments and total hour reported."
+        ]
+    },
+    {
+        "table": "D_DEPARTMENT",
+        "sample_queries": [
+            "List all the employee working in the department Accounting",
+            "List all the employees who have registered absences in 2018 and their departments.",
+            "List all the employees who have registered absences in 2018, their departments and total hour reported."
+        ]
+    },
+    {
+        "table": "T_MEDICO",
+        "sample_queries": [
+            "Contar el número de pacientes asignados a cada doctor",
+            "Encontrar el doctor que ha estado practicando por más tiempo"
+        ]
+    },
+    {
+        "table": "T_PACIENTE",
+        "sample_queries": [
+            "Listar todos los pacientes con metástasis hepática",
+            "Encontrar todos los pacientes con metástasis pulmonar"
         ]
     }
 ]
