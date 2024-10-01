@@ -13,6 +13,7 @@ this is an abstract class
 import re
 import json
 from abc import ABC, abstractmethod
+from tqdm import tqdm
 import oracledb
 from langchain_core.prompts import PromptTemplate
 from langchain.docstore.document import Document
@@ -120,7 +121,7 @@ class SchemaManager(ABC):
             table_names = []
 
             # Iterate through each table and get its CREATE TABLE statement
-            for table in tables:
+            for table in tqdm(tables):
                 table_name = table[0]
                 table_names.append(table_name)
 
@@ -240,7 +241,9 @@ class SchemaManager(ABC):
             self.tables_chunk = []
             self.summaries = []
 
-            for table_chunk in tables:
+            self.logger.info("Processing tables...")
+
+            for table_chunk in tqdm(tables):
                 # check that it is not an empty string
                 if table_chunk.strip():
                     match = re.search(r"^\s*([a-zA-Z_][\w]*)\s*\(", table_chunk)

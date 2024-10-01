@@ -44,7 +44,7 @@ Extract only the relevant information from the user's query to build the correct
 Identify necessary joins, tables, and columns.
 Ensure compliance with Oracle SQL standards, including:
 Use FETCH FIRST N ROWS ONLY instead of LIMIT N.
-Handle dates using TO_DATE().
+Handle dates using TO_DATE() but do not apply TO_DATE to SYSDATE.
 Use || for string concatenation instead of CONCAT().
 If a "User Group Id" is provided, add filter conditions for tables containing the USER_GROUP_ID column.
 Ensure that field types are respected (e.g., avoid treating numbers as dates).

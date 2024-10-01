@@ -39,6 +39,58 @@ class SchemaManager23AI(SchemaManager):
 
     # init defined in the superclass
 
+    def _load_and_process_schema(self, table_filter_func):
+        """
+        Loads the schema from the database, processes the table chunks,
+        filters them based on the provided table filter function, and prepares
+        documents for embedding.
+
+        This function contains logic common to init_schema and update_schema.
+        The difference is only in the filter_func
+
+        Args:
+            table_filter_func (callable): A function that takes a table chunk
+            and returns True if the table should be included, False otherwise.
+
+        Returns:
+            docs (list): The prepared documents for embedding.
+
+        """
+        try:
+            self.logger.info("Reading schema from DB...")
+
+            # Read the raw schema from the database
+            raw_schema = self._get_raw_schema()
+
+            # Split the schema for tables (output is a list of table chunks)
+            tables = raw_schema["table_info"].split("CREATE TABLE")
+
+            # Filter tables using the provided filter function
+            tables = [t_chunk for t_chunk in tables if table_filter_func(t_chunk)]
+
+            # Read the sample queries for each table and build a structure
+            # with table_name and sample_queries
+            tables_with_samples_dict = self._read_samples_query()
+
+            # Process the schema to populate summaries and table list
+            self._process_schema(tables, tables_with_samples_dict)
+
+            # Ensure consistency between summaries and table list
+            assert len(self.summaries) == len(
+                self.tables_list
+            ), "Mismatch between summaries and tables_list lengths."
+
+            # Prepare documents for embedding
+            docs = self._prepare_documents()
+
+            return docs
+
+        except Exception as e:
+            self._handle_exception(
+                e, "Error in SchemaManager:_load_and_process_schema..."
+            )
+            raise  # Re-raise the exception after handling it
+
     def init_schema_manager(self):
         """
         Initializes the Schema Manager by loading the schema data
@@ -52,37 +104,18 @@ class SchemaManager23AI(SchemaManager):
             Exception: If the schema cannot be loaded.
         """
         try:
-            self.logger.info("Reading schema from DB...")
-
-            raw_schema = self._get_raw_schema()
-
-            # split the schema for tables
-            # tables is a list of table chunk (chunks of schema desc)
-            tables = raw_schema["table_info"].split("CREATE TABLE")
-
-            # added to eventually filter table_names
-            if INCLUDE_TABLES_PREFIX != "ALL":
-                # takes only those starting with INCLUDE_TABLES_PREFIX
-                tables = [
-                    t_chunk
-                    for t_chunk in tables
-                    if self._get_table_name_from_table_chunk(t_chunk)
+            # Define a filter function for table names based on the prefix
+            if INCLUDE_TABLES_PREFIX == "ALL":
+                table_filter_func = lambda t_chunk: True  # Include all tables
+            else:
+                table_filter_func = (
+                    lambda t_chunk: self._get_table_name_from_table_chunk(t_chunk)
                     .upper()
                     .startswith(INCLUDE_TABLES_PREFIX)
-                ]
+                )
 
-            # read the samples queries for each table and
-            # create the structure with table_name, sample_queries
-            tables_dict = self._read_samples_query()
-
-            # populate summaries and tables_list
-            self._process_schema(tables, tables_dict)
-
-            # sanity check
-            assert len(self.summaries) == len(self.tables_list)
-
-            # prepare the docs to be embedded
-            docs = self._prepare_documents()
+            # call the helper function to Load and process the schema with the table filter
+            docs = self._load_and_process_schema(table_filter_func)
 
             # init the vector store
             self.logger.info("Loading in Oracle 23AI...")
@@ -103,27 +136,6 @@ class SchemaManager23AI(SchemaManager):
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:init_schema_manager...")
 
-    def delete_from_schema_manager(self, conn, t_name):
-        """
-        Delete the record for a selected table from the VECTOR tables
-        """
-        try:
-            # Create a cursor object
-            cursor = conn.cursor()
-
-            # SQL statement to delete a record where t_name matches
-            sql = f"""DELETE FROM {VECTOR_TABLE_NAME} WHERE
-                   json_value(METADATA, '$.table') = :t_name_value
-                   """
-
-            # Execute the DELETE SQL with the value of t_name
-            cursor.execute(sql, {"t_name_value": t_name})
-
-        except Exception as e:
-            self._handle_exception(
-                e, "Error in SchemaManager:delete_from_schema_manager..."
-            )
-
     def update_schema_manager(self, selected_tables_list):
         """
         Update the data for selected tables in the Schema Manager DB
@@ -133,33 +145,15 @@ class SchemaManager23AI(SchemaManager):
         self.logger.info("Selected tables: %s", selected_tables_list)
 
         try:
-            self.logger.info("Reading schema from DB...")
-
-            raw_schema = self._get_raw_schema()
-
-            # split the schema for tables
-            # tables is a list of table chunk (chunks of schema desc)
-            tables = raw_schema["table_info"].split("CREATE TABLE")
-
-            # filter chunks
-            # take only those whose tables are in selected table list
-            # starting from tables we avoid mistakes in the tables list
-            tables = [
-                t_chunk
-                for t_chunk in tables
-                if self._get_table_name_from_table_chunk(t_chunk).upper()
+            # Define a filter function for selected tables; in this case only the tables in
+            # selected_tables_list
+            table_filter_func = (
+                lambda t_chunk: self._get_table_name_from_table_chunk(t_chunk).upper()
                 in selected_tables_list
-            ]
+            )
 
-            # read the samples queries for each table and
-            # create the structure with table_name, sample_queries
-            tables_dict = self._read_samples_query()
-
-            # populate summaries and tables_list
-            self._process_schema(tables, tables_dict)
-
-            # prepare the docs to be embedded, only for selected tables
-            docs = self._prepare_documents()
+            # Load and process the schema with the table filter
+            docs = self._load_and_process_schema(table_filter_func)
 
             # update the vector store
             self.logger.info("Updating Oracle 23AI...")
@@ -190,6 +184,27 @@ class SchemaManager23AI(SchemaManager):
 
         except Exception as e:
             self._handle_exception(e, "Error in SchemaManager:update_schema_manager...")
+
+    def delete_from_schema_manager(self, conn, t_name):
+        """
+        Delete the record for a selected table from the VECTOR tables
+        """
+        try:
+            # Create a cursor object
+            cursor = conn.cursor()
+
+            # SQL statement to delete a record where t_name matches
+            sql = f"""DELETE FROM {VECTOR_TABLE_NAME} WHERE
+                   json_value(METADATA, '$.table') = :t_name_value
+                   """
+
+            # Execute the DELETE SQL with the value of t_name
+            cursor.execute(sql, {"t_name_value": t_name})
+
+        except Exception as e:
+            self._handle_exception(
+                e, "Error in SchemaManager:delete_from_schema_manager..."
+            )
 
     def _read_samples_query(self):
         """
@@ -255,6 +270,7 @@ class SchemaManager23AI(SchemaManager):
         # step1: similarity search: returns TOP_K
         # step2: rerank, using LLM and returns TOP_N
         try:
+            # here we connect to vector not data schema
             with self._get_vector_db_connection() as conn:
 
                 results = self._similarity_search(query, conn)
