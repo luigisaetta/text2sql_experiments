@@ -234,6 +234,7 @@ def generate_sql_with_models(
         logger.info("Trying with another model...")
 
     logger.error("All models failed to generate a valid SQL query.")
+    logger.info("User query: %s", user_query)
 
     return ""
 

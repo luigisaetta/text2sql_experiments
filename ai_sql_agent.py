@@ -134,6 +134,8 @@ class AISQLAgent:
             self.prompt_template,
             user_group_id,
         )
-        self.logger.info("SQL query generated.")
+
+        if len(sql_query) > 0:
+            self.logger.info("SQL query generated.")
 
         return sql_query

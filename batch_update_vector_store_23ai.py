@@ -19,7 +19,7 @@ from config import (
 )
 from config_private import COMPARTMENT_OCID
 
-tables_list = ["D_EMPLOYEE", "D_DEPARTMENT"]
+tables_list = ["T_MEDICO", "T_PACIENTE"]
 
 #
 # Main
