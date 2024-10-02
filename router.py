@@ -12,7 +12,7 @@ from config import INDEX_MODEL_FOR_ROUTING, DEBUG
 
 class Router:
     """
-    Wraps all the code needed to use the decide
+    Wraps all the code needed to decide
     what is the type of user request
     """
 
@@ -24,7 +24,7 @@ class Router:
 
     def extract_json(self, text):
         """
-        extract frok the content the portion between {} (included)
+        extract from the content the portion between {} (included)
         """
         start = text.find("{")
         end = text.rfind("}")
@@ -39,7 +39,7 @@ class Router:
 
     def classify(self, user_request: str) -> str:
         """
-        classify in one of two categories:
+        classify in one of this categories:
             generate_sql
             analyze_text
         """

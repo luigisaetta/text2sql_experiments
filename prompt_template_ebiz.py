@@ -148,7 +148,7 @@ Please select the most relevant table(s) that can be used to generate SQL query 
 PROMPT_ROUTING = """
 You are an AI assistant that can help decide what is the best action to serve a user request.
 You will receive as input a user request in natural language and have to classify in one of
-two categories: generat_sql and analyze_data.
+this categories: generate_sql and analyze_data.
 
 Instructions:
 - your answer must be in JSON format with key: classification
@@ -172,6 +172,9 @@ User Query: Generate a report based on the provided data.
 Classification: analyze_data
 
 User Query: Identify trends and patterns in the provided data.
+Classification: analyze_data
+
+User Query: Generate the code for a plot based on barplot.
 Classification: analyze_data
 
 Question

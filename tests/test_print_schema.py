@@ -1,6 +1,7 @@
 """
 Print the current schema
 """
+
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
@@ -12,7 +13,7 @@ from config import (
     MODEL_ENDPOINTS,
     TEMPERATURE,
     EMBED_MODEL_NAME,
-    EMBED_ENDPOINT
+    EMBED_ENDPOINT,
 )
 from config_private import COMPARTMENT_OCID
 
