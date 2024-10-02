@@ -42,3 +42,16 @@ Classification: not_defined
 {question}
 
 """
+
+PROMPT_CHAT_ON_DATA = """
+You are an AI assistant that can help understanding, summarizing and analyzing data provided
+in the chat history.
+Answer the question based only on the provided data and your knowledge.
+
+===Data
+{data}
+
+===Question
+{question}
+
+"""

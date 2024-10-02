@@ -26,6 +26,7 @@ json_schema = {
     "required": ["classification"],
 }
 
+
 class Router:
     """
     Wraps all the code needed to decide

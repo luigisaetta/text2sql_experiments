@@ -15,6 +15,7 @@ from schema_manager_23ai import SchemaManager23AI
 from utils import get_console_logger
 from config import AUTH_TYPE
 
+
 class AISQLAgent:
     """
     Wraps all the code needed to use the SQL Agent
