@@ -61,5 +61,6 @@ try:
 
 except oracledb.DatabaseError as e:
     # Rollback the transaction if there is any error
-    conn.rollback()
     logger.error("Error inserting data: %s", e)
+    conn.rollback()
+    
