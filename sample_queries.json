@@ -107,6 +107,14 @@
         ]
     },
     {
+        "table": "D_ABSENCE_TYPE",
+        "sample_queries": [
+            "List all the employees who have registered absences in 2018 and their departments.",
+            "List all the employees who have registered absences in 2018,  total hours and their departments.",
+            "List all the employees who have registered absences in 2018, their departments and total hour reported."
+        ]
+    },
+    {
         "table": "D_EMPLOYEE",
         "sample_queries": [
             "List all the employee working in the department Accounting",
@@ -118,6 +126,13 @@
         "table": "D_DEPARTMENT",
         "sample_queries": [
             "List all the employee working in the department Accounting",
+            "List all the employees who have registered absences in 2018 and their departments.",
+            "List all the employees who have registered absences in 2018, their departments and total hour reported."
+        ]
+    },
+    {
+        "table": "F_ABSENCE",
+        "sample_queries": [
             "List all the employees who have registered absences in 2018 and their departments.",
             "List all the employees who have registered absences in 2018, their departments and total hour reported."
         ]
