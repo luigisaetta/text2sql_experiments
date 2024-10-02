@@ -13,7 +13,7 @@ from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
 
 from utils import get_console_logger
-
+from config import AUTH_TYPE
 
 class AISQLAgent:
     """
@@ -81,6 +81,7 @@ class AISQLAgent:
     def _initialize_embed_model(self):
         """Initialize the embedding model for schema manager."""
         return OCIGenAIEmbeddingsWithBatch(
+            auth_type=AUTH_TYPE,
             model_id=self.embed_model_name,
             service_endpoint=self.embed_endpoint,
             compartment_id=self.compartment_ocid,
