@@ -2,9 +2,10 @@
 Router
 """
 
+import json
 from langchain_core.prompts import PromptTemplate
 from llm_manager import LLMManager
-from prompt_template import PROMPT_ROUTING
+from prompt_routing import PROMPT_ROUTING
 from utils import get_console_logger
 
 from config import INDEX_MODEL_FOR_ROUTING, DEBUG
@@ -42,18 +43,26 @@ class Router:
         classify in one of this categories:
             generate_sql
             analyze_text
+            ...
         """
         logger = get_console_logger()
 
         classify_prompt = PromptTemplate.from_template(PROMPT_ROUTING)
-
         llm_c = self.llm_manager.llm_models[INDEX_MODEL_FOR_ROUTING]
         classify_chain = classify_prompt | llm_c
 
+        # invoke the LLM
         result = classify_chain.invoke({"question": user_request})
 
         if DEBUG:
             logger.info("Router:classify: %s", result)
 
         # json in the format {"classification": value}
-        return self.extract_json(result.content)
+        json_string = self.extract_json(result.content)
+
+        # convert in dict
+        data = json.loads(json_string)
+
+        classification_value = data["classification"]
+
+        return classification_value
