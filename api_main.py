@@ -3,6 +3,7 @@ REST API for SQL query generation
 """
 
 import json
+from datetime import datetime
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -137,6 +138,12 @@ def generate_and_exec_sql(request: GenerateSQLInput):
 
     # serialize each row in a dict
     rows_ser = [to_dict(row) for row in rows]
+
+    # (2/10) handle datetime to solve serialization problem
+    for row in rows_ser:
+        for key, value in row.items():
+            if isinstance(value, datetime):
+                row[key] = value.isoformat()
 
     json_data = json.dumps(rows_ser)
 
