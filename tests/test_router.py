@@ -18,10 +18,11 @@ router = Router(llm_manager)
 
 # now battery of test using SH schema:
 # TESTS_FILE_NAME = "testsh50.txt"
-TESTS_FILE_NAME = "testhr30.txt"
+# TESTS_FILE_NAME = "testhr30.txt"
 # TESTS_FILE_NAME = "testhr_problems.txt"
 # TESTS_FILE_NAME = "testsh30_ita.txt"
 # TESTS_FILE_NAME = "test_hospital.txt"
+TESTS_FILE_NAME = "test_routing.txt"
 
 # read the file with users requests
 with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
