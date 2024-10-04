@@ -107,7 +107,7 @@ class UserInput(BaseModel):
 #
 def add_msg(conv_id: str, msg: dict):
     """
-    add a data to a conversation.
+    add data to a conversation.
     If the conversation doesn't exist create it
     data: rows retrieved from SQL
     """

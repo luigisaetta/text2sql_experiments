@@ -1,5 +1,5 @@
 """
-Streamlit API client
+Client for API v2
 """
 
 import json
@@ -8,14 +8,11 @@ import streamlit as st
 
 from utils import get_console_logger
 
-API_URL = "http://localhost:8888"
+# API_URL = "http://localhost:8888"
+API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
 
 # Define the available operations
-operations = {
-    "Generate SQL": "/generate",
-    "Generate and Execute SQL": "/generate_and_exec_sql",
-    "Explain AI Response": "/explain_ai_response",
-}
+operations = {"handle_request_v2": "/v2/handle_data_request"}
 
 logger = get_console_logger()
 
@@ -41,7 +38,6 @@ def convert_to_json(response_content):
         return None
 
 
-# Define the main Streamlit app
 def main():
     """
     main
@@ -53,8 +49,7 @@ def main():
         "Select an API Operation", list(operations.keys())
     )
 
-    # Input fields based on the selected operation
-    if selected_operation in ["Generate SQL", "Generate and Execute SQL"]:
+    if selected_operation in ["handle_request_v2"]:
         st.subheader("Input data")
         conv_id = st.text_input("Conversation ID")
         user_query = st.text_area("User Query")
@@ -62,25 +57,13 @@ def main():
         # Create a dictionary for the request body
         request_body = {"conv_id": conv_id, "user_query": user_query}
 
-    elif selected_operation == "Explain AI Response":
-        st.subheader("Input data")
-        conv_id = st.text_input("Conversation ID")
-        user_query = st.text_area("User Query")
-        rows = st.text_area("Rows (comma-separated values for each row)")
-
-        # Convert rows input to a list
-        rows_list = [row.strip() for row in rows.split(",") if row.strip()]
-
-        # Create a dictionary for the request body
-        request_body = {"conv_id": conv_id, "user_query": user_query, "rows": rows_list}
-
-    # Button to trigger the API call
+    # API call
     if st.button("Send Request"):
         # Make the API request to the selected operation
         endpoint = API_URL + operations[selected_operation]
 
         # here we call the api
-        response = requests.post(endpoint, json=request_body, timeout=30)
+        response = requests.post(endpoint, json=request_body, timeout=120)
 
         # Display the response
         if response.status_code == 200:
@@ -88,20 +71,23 @@ def main():
 
             # If the response is not JSON (like binary/text), convert it to a JSON-like structure
             try:
-                response_json = response.json()  # Try to parse JSON directly
-                st.json(response_json)
+                json_response = response.json()  # Try to parse JSON directly
             except Exception:
                 # If response is not JSON, convert binary/text to JSON manually
                 json_response = convert_to_json(response.content)
 
-                if json_response:
-                    st.json(json.loads(json_response))
+            if json_response:
+                logger.info("")
+                logger.info(json_response)
+                logger.info("")
 
-        else:
-            st.error(f"Error: {response.status_code}")
-            st.json(response.json())
+                if json_response["type"] == "data":
+                    st.json(json_response["content"])
+                else:
+                    st.write(json_response["content"])
+
+    # Run the app
 
 
-# Run the app
 if __name__ == "__main__":
     main()
