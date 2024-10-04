@@ -156,7 +156,7 @@ def manage_datetime(rows):
     return rows
 
 
-@app.post("/generate/", tags=["V1"])
+@app.post("/generate", tags=["V1"])
 def generate(request: UserInput):
     """
     The function handles the request to generate a SQL query
@@ -182,7 +182,7 @@ def generate(request: UserInput):
     return JSONResponse(content={"generated_sql": sql_query})
 
 
-@app.post("/generate_and_exec_sql/", tags=["V1"])
+@app.post("/generate_and_exec_sql", tags=["V1"])
 def generate_and_exec_sql(request: UserInput):
     """
     generate SQL and then execute
@@ -358,7 +358,7 @@ def handle_generic_request_v2(request):
 #
 # HTTP Operations for V2
 #
-@app.post("/v2/handle_data_request/", tags=["V2"])
+@app.post("/v2/handle_data_request", tags=["V2"])
 def generic_data_request(request: UserInput):
     """
     Could be generate SQL-and-exec or explain or create a report
@@ -369,7 +369,7 @@ def generic_data_request(request: UserInput):
 
 
 # to clean up a conversation
-@app.delete("/v2/delete/", tags=["V2"])
+@app.delete("/v2/delete", tags=["V2"])
 def delete(conv_id: str):
     """
     delete a conversation
