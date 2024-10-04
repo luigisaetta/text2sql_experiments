@@ -8,8 +8,9 @@ import streamlit as st
 
 from utils import get_console_logger
 
-# API_URL = "http://localhost:8888"
-API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
+TIMEOUT = 240
+API_URL = "http://localhost:8888"
+# API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
 
 # Define the available operations
 operations = {"handle_request_v2": "/v2/handle_data_request"}
@@ -63,7 +64,7 @@ def main():
         endpoint = API_URL + operations[selected_operation]
 
         # here we call the api
-        response = requests.post(endpoint, json=request_body, timeout=120)
+        response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
 
         # Display the response
         if response.status_code == 200:
@@ -82,8 +83,10 @@ def main():
                 logger.info("")
 
                 if json_response["type"] == "data":
-                    st.json(json_response["content"])
+                    # display a table with the data
+                    st.table(json_response["content"])
                 else:
+                    # display a report
                     st.write(json_response["content"])
 
     # Run the app
