@@ -12,6 +12,7 @@ Instructions:
 - value can be: generate_sql, analyze_data, not_defined
 - if the request needs to read data from database the classification must be: generate_sql
 - if the request requires analysis of data from a LLM the classification must be: analyze_data
+- if the request is for clarification or contains a question on a report you generated the classification must be: analyze_data
 - if you don't have enough information to classify, the classification must be: not_defined
 - provide only the JSON result. Don't add other comments or questions.
 - enclose always the array in triple backtick, don't start with 'json'
@@ -23,10 +24,19 @@ Classification: generate_sql
 User Query: What is the total amount for invoices with a payment currency of USD from supplier 'CDW'?
 Classification: generate_sql
 
+User query: What is the list of tables available?
+Classification: generate_sql
+
 User Query: Analyze the data provided and generate a report.
 Classification: analyze_data
 
 User Query: Generate a report based on the provided data.
+Classification: analyze_data
+
+User Query: Create a report and organize the data in a table.
+Classification: analyze_data
+
+User Query: Create a report called Sales in Italy. In a table shows only the sales made in Italy.
 Classification: analyze_data
 
 User Query: Identify trends and patterns in the provided data.
