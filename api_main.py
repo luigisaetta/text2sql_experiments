@@ -53,7 +53,8 @@ app = FastAPI()
 
 # for now we keep a certain number of round trip (req, resp)
 # but for explain we use the last msgs (should contain data)
-MAX_MSGS = 10
+# 10 re/ai resp.
+MAX_MSGS = 20
 
 conversations: Dict[str, List] = {}
 
