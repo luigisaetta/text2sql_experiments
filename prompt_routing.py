@@ -27,6 +27,9 @@ Classification: generate_sql
 User query: What is the list of tables available?
 Classification: generate_sql
 
+User query: Describe the table locations.
+Classification: generate_sql
+
 User Query: Analyze the data provided and generate a report.
 Classification: analyze_data
 
