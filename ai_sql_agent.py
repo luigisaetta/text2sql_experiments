@@ -19,6 +19,8 @@ from config import AUTH_TYPE
 class AISQLAgent:
     """
     Wraps all the code needed to use the SQL Agent
+
+    5/10: added a simple cache, useful especially for demos
     """
 
     def __init__(
@@ -62,6 +64,9 @@ class AISQLAgent:
         self.llm_manager = self._initialize_llm_manager()
         self.embed_model = self._initialize_embed_model()
         self.schema_manager = self._initialize_schema_manager()
+
+        # added for an exact cache
+        self.cache = {}
 
         self.logger.info("AI SQL Agent initialized successfully.")
 
@@ -124,6 +129,12 @@ class AISQLAgent:
         Returns:
             str: The generated SQL query.
         """
+        if user_request in self.cache:
+           self.logger.info("")
+           self.logger.info("Found request in cache...")
+           return self.cache[user_request]
+
+        # generate
         restricted_schema = self.generate_restricted_schema(user_request)
 
         self.logger.info("Generating SQL query...")
@@ -139,5 +150,7 @@ class AISQLAgent:
 
         if len(sql_query) > 0:
             self.logger.info("SQL query generated.")
+            # add to cache
+            self.cache[user_request] = sql_query
 
         return sql_query

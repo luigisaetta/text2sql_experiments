@@ -106,7 +106,7 @@ def abbreviate_question(question, max_length=40):
 # Main
 #
 # Streamlit UI
-st.title("Oracle SQL Agent V2.1")
+st.title("Oracle SQL Agent V2.2")
 
 # section to handle sample question
 st.sidebar.title("Sample questions")
