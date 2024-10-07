@@ -43,7 +43,22 @@ def main():
     """
     main
     """
-    st.title("FastAPI Client with Streamlit")
+    st.set_page_config(
+        initial_sidebar_state="collapsed",
+    )
+
+    st.title("Client for API v2")
+
+    # Initialize session state for request_sent if it doesn't exist
+    if "request_sent" not in st.session_state:
+        st.session_state["request_sent"] = False
+    if "conv_id" not in st.session_state:
+        st.session_state["conv_id"] = ""
+    if "user_query" not in st.session_state:
+        st.session_state["user_query"] = ""
+
+    if st.sidebar.button("Reset chat"):
+        logger.info("Reset...")
 
     # Select operation
     selected_operation = st.selectbox(
@@ -55,21 +70,37 @@ def main():
         conv_id = st.text_input("Conversation ID")
         user_query = st.text_area("User Query")
 
+        # Update session state if inputs change
+        if (
+            conv_id != st.session_state["conv_id"]
+            or user_query != st.session_state["user_query"]
+        ):
+            st.session_state["conv_id"] = conv_id
+            st.session_state["user_query"] = user_query
+            st.session_state["request_sent"] = (
+                False  # Allow a new request if inputs change
+            )
+
+        # remove blank at beginning and end
+        user_query = user_query.strip()
+
         # Create a dictionary for the request body
         request_body = {"conv_id": conv_id, "user_query": user_query}
 
     # API call
-    if st.button("Send Request"):
+    if st.button("Send Request") and not st.session_state["request_sent"]:
         # Make the API request to the selected operation
         endpoint = API_URL + operations[selected_operation]
 
         # here we call the api
-        response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+        with st.spinner():
+            response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+
+        # Mark the request as sent to avoid multiple submissions
+        st.session_state["request_sent"] = True
 
         # Display the response
         if response.status_code == 200:
-            st.success("Success!")
-
             # If the response is not JSON (like binary/text), convert it to a JSON-like structure
             try:
                 json_response = response.json()  # Try to parse JSON directly
@@ -89,8 +120,10 @@ def main():
                     # display a report
                     st.write(json_response["content"])
 
-    # Run the app
+        # Reset the state to allow a new request to be sent
+        st.session_state["request_sent"] = False
 
 
+# Run the app
 if __name__ == "__main__":
     main()

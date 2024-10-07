@@ -6,11 +6,13 @@ Author: L. Saetta (Oracle)
         v 0.95
 """
 
+import time
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from core_functions import generate_sql_with_models
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
+from request_cache import RequestCache
 
 from utils import get_console_logger
 from config import AUTH_TYPE
@@ -66,7 +68,7 @@ class AISQLAgent:
         self.schema_manager = self._initialize_schema_manager()
 
         # added for an exact cache
-        self.cache = {}
+        self.request_cache = RequestCache()
 
         self.logger.info("AI SQL Agent initialized successfully.")
 
@@ -129,12 +131,16 @@ class AISQLAgent:
         Returns:
             str: The generated SQL query.
         """
-        if user_request in self.cache:
-           self.logger.info("")
-           self.logger.info("Found request in cache...")
-           return self.cache[user_request]
+        # if the request is found in cache return it
+        cached_result = self.request_cache.get_request_with_stats(user_request)
+        if cached_result:
+            if len(cached_result["sql"]) > 0:
+                self.logger.info("")
+                self.logger.info("Found request in cache...")
+                return cached_result["sql"]
 
         # generate
+        time_start = time.time()
         restricted_schema = self.generate_restricted_schema(user_request)
 
         self.logger.info("Generating SQL query...")
@@ -147,10 +153,17 @@ class AISQLAgent:
             self.prompt_template,
             user_group_id,
         )
+        time_elapsed = time.time() - time_start
 
         if len(sql_query) > 0:
+            # ok, generated
             self.logger.info("SQL query generated.")
-            # add to cache
-            self.cache[user_request] = sql_query
+            success = True
+        else:
+            # query not generated
+            success = False
 
+        self.request_cache.add_to_cache(
+            user_request, sql_query, success=success, generation_time=time_elapsed
+        )
         return sql_query

@@ -304,6 +304,9 @@ def handle_generic_request_v2(request):
     get a generic request and dispatch
     """
 
+    logger.info("")
+    logger.info("Request received: %s", request.user_query)
+
     # classify using the router (LLM based)
     classification = router.classify(request.user_query)
 
@@ -383,6 +386,17 @@ def delete(conv_id: str):
     del conversations[conv_id]
 
     return Response(content="", media_type=MEDIA_TYPE_JSON)
+
+
+# to get the stats
+@app.get("/v2/get_cache_stats", tags=["V2"])
+def get_cache_stats():
+    """
+    read the stats from the cache
+    """
+    all_stats = ai_sql_agent.request_cache.get_all_stats()
+
+    return JSONResponse(content=all_stats, status_code=200)
 
 
 #

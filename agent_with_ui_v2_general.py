@@ -117,8 +117,7 @@ sample_questions = [
     "Can you show me a list of all departments along with the headcount in each department?",
     "Retrieve the product names and the total amount sold for each product.",
     "Which employees have joined the company in 2018, and what are their respective departments?",
-    """How many products have been sold in the last 30 days,
-categorized by region and product type?""",
+    """How many products have been sold in 2000, categorized by region and product type?""",
 ]
 
 # for e-biz
