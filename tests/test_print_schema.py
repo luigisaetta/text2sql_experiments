@@ -40,6 +40,16 @@ logger.info("Loading Schema Manager...")
 # schema manager encapsulate the connection to vector store db
 schema_manager = SchemaManager23AI(db_manager, llm_manager, embed_model, logger)
 
-RAW_SCHEMA = schema_manager._get_raw_schema()
+TESTS_FILE_NAME = "test_absences.txt"
 
-print(RAW_SCHEMA)
+# read the file with users requests
+with open(TESTS_FILE_NAME, "r", encoding="UTF-8") as file:
+    USER_QUERIES = [linea.strip() for linea in file]
+
+for user_query in USER_QUERIES:
+    restricted_schema = schema_manager.get_restricted_schema(user_query)
+
+    logger.info(user_query)
+    logger.info("Schema len: %5d char.", len(restricted_schema))
+    logger.info("")
+
