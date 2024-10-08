@@ -1,6 +1,7 @@
 """
 api_test
 """
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -30,7 +31,7 @@ prompt_template = PromptTemplate(
 
     Nuova richiesta:
     {input}
-    """
+    """,
 )
 
 llm_manager = LLMManager(
@@ -39,10 +40,12 @@ llm_manager = LLMManager(
 
 llm = llm_manager.llm_models[0]
 
+
 # Modello per gestire il payload delle richieste
 class ConversationRequest(BaseModel):
     conv_id: str  # Identificatore della conversazione
     user_input: str  # Nuova richiesta dell'utente
+
 
 # Funzione per creare una nuova catena di conversazione usando LCEL con l'operatore `|`
 def create_lcel_chain(memory):
@@ -50,9 +53,10 @@ def create_lcel_chain(memory):
     chain = LLMChain(
         llm=llm,
         prompt=prompt_template,
-        memory=memory  # Collega la memoria direttamente qui
+        memory=memory,  # Collega la memoria direttamente qui
     )
     return chain
+
 
 # Definiamo la route per la conversazione
 @app.post("/converse")

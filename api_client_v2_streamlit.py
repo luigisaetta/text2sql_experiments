@@ -119,12 +119,17 @@ def main():
                 logger.info(json_response)
                 logger.info("")
 
-                if json_response["type"] == "data":
-                    # display a table with the data
-                    st.table(json_response["content"])
+                # read the status
+                if json_response["status"] == "OK":
+                    if json_response["type"] == "data":
+                        # display a table with the data
+                        st.table(json_response["content"])
+                    else:
+                        # display a report
+                        st.write(json_response["content"])
                 else:
-                    # display a report
-                    st.write(json_response["content"])
+                    # KO
+                    st.error("Error: " + json_response["msg"])
 
         # Reset the state to allow a new request to be sent
         st.session_state["request_sent"] = False

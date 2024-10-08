@@ -284,14 +284,23 @@ def handle_generate_and_exec_sql_v2(request):
         if len(sql_query) > 0:
             rows = db_manager.execute_sql(sql_query)
 
-    # serialize each row in a dict
-    if rows is not None:
-        rows_ser = [to_dict(row) for row in rows]
+            # serialize each row in a dict
+            if rows is not None:
+                rows_ser = [to_dict(row) for row in rows]
 
-        # handle serialization of datetime columns
-        rows_ser = manage_datetime(rows_ser)
+                # handle serialization of datetime columns
+                rows_ser = manage_datetime(rows_ser)
+            else:
+                rows_ser = []
+        else:
+            # SQL not generated
+            logger.info("User query: %s", user_query)
+            logger.error("SQL Agent: Not able to generate SQL.")
+            raise ValueError("SQL Agent: Not able to generate SQL.")
     else:
-        rows_ser = []
+        # not received request
+        logger.error("No user request.")
+        raise ValueError("User request not provided.")
 
     return rows_ser
 
@@ -325,7 +334,22 @@ def handle_generic_request_v2(request):
     if classification == "generate_sql":
         # sql generates data
         output_type = "data"
-        output = handle_generate_and_exec_sql_v2(request)
+
+        try:
+            # try to catch the case where the SQL generated is not correct
+            output = handle_generate_and_exec_sql_v2(request)
+        except ValueError:
+            # return an error to UI
+            msg = "SQL not generated !"
+            obj_output = {
+                "status": "KO",
+                "type": output_type,
+                "content": "",
+                "msg": msg,
+            }
+            result = json.dumps(obj_output)
+
+            return result
 
     elif classification == "analyze_data":
         # generates a report
