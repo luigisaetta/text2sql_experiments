@@ -396,7 +396,10 @@ def get_cache_stats():
     """
     all_stats = ai_sql_agent.request_cache.get_all_stats()
 
-    return JSONResponse(content=all_stats, status_code=200)
+    # uniform output
+    obj_output = {"status": "OK", "type": "data", "content": all_stats, "msg": ""}
+
+    return JSONResponse(content=obj_output, status_code=200)
 
 
 #

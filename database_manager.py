@@ -30,6 +30,9 @@ class DatabaseManager:
                 "oracle+oracledb://:@",
                 thick_mode=False,
                 connect_args=self.connect_args,
+                # 7/10/2024: SQL Alchemy has a connection pool
+                # to avoid connection staleness due to conn drop from a fw or network
+                pool_pre_ping=True
             )
             self.logger.info("DB engine created...")
 

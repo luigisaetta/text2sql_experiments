@@ -13,7 +13,10 @@ API_URL = "http://localhost:8888"
 # API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
 
 # Define the available operations
-operations = {"handle_request_v2": "/v2/handle_data_request"}
+operations = {
+    "handle_request_v2": "/v2/handle_data_request",
+    "get_cache_stats": "/v2/get_cache_stats",
+}
 
 logger = get_console_logger()
 
@@ -94,7 +97,10 @@ def main():
 
         # here we call the api
         with st.spinner():
-            response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+            if selected_operation == "handle_request_v2":
+                response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+            else:
+                response = requests.get(endpoint, timeout=TIMEOUT)
 
         # Mark the request as sent to avoid multiple submissions
         st.session_state["request_sent"] = True
