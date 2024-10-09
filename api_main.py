@@ -2,6 +2,7 @@
 REST API for SQL query generation
 
 V2: added management of conversation and routing
+V 2.1: added complete chat with data
 """
 
 import json
@@ -13,7 +14,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
-from langchain_core.prompts import PromptTemplate
+
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+)
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
 from ai_sql_agent import AISQLAgent
 from database_manager import DatabaseManager
@@ -56,7 +62,8 @@ app = FastAPI()
 # 10 re/ai resp.
 MAX_MSGS = 20
 
-conversations: Dict[str, List] = {}
+# key is the conv_id, value is a list of msgs
+conversations: Dict[str, List[BaseMessage]] = {}
 
 logger = get_console_logger()
 
@@ -87,6 +94,17 @@ ai_sql_agent = AISQLAgent(
     PROMPT_TEMPLATE,
 )
 
+# this are preamble and template used for chat with your data
+PREAMBLE = """You are an AI assistant.
+Your task is to explain the provided data and respond to requests 
+by referencing both the given data and the conversation history.
+Base your answers strictly on the provided information and prior messages in the conversation.
+"""
+
+analyze_template = ChatPromptTemplate.from_messages(
+    [("system", PREAMBLE), MessagesPlaceholder("msgs")]
+)
+
 
 class UserInput(BaseModel):
     """
@@ -105,11 +123,15 @@ class UserInput(BaseModel):
 # supporting functions to manage the conversation
 # history (add, get)
 #
-def add_msg(conv_id: str, msg: dict):
+def add_msg(conv_id: str, msg: BaseMessage):
     """
-    add data to a conversation.
+    add msg to a conversation.
     If the conversation doesn't exist create it
-    data: rows retrieved from SQL
+
+    msg can be:
+    - a message with data
+    - a message with human request
+    -the answer from a model
     """
     if conv_id not in conversations:
         # create it
@@ -214,68 +236,45 @@ def generate_and_exec_sql(request: UserInput):
 #
 # supporting functions for V2
 #
-def analize_data(user_request, data):
-    """
-    This function analyze the data provided
-    based on the user request using an LLM
-    """
-    # setup model for data analysis
-    analyze_prompt = PromptTemplate.from_template(PROMPT_CHAT_ON_DATA)
-
-    # get llm to be used
-    llm_c = llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
-
-    analyze_chain = analyze_prompt | llm_c
-
-    result = analyze_chain.invoke({"data": data, "question": user_request})
-
-    return result.content
-
-
-def backward_search(conv):
-    """
-    search for the first data object in conversation
-    starting from bottom of the list
-    """
-    # backward search
-    # if conv is empty return None
-    for el in reversed(conv):
-        if el["type"] == "data":
-            return el
-    return None  # not found
-
-
-def handle_explain_ai_response_v2(request):
+def explain_ai_response_v2(request) -> AIMessage:
     """
     handle a request to analyze or explain data or create a report
-    needs: data
+
+    This function analyze the data
+    based on the user request using an LLM
+
+    data should be already in the chat history
+    the user request is the last msg in history
     """
-    # we need to check that data exist in conversation
-    conv = get_conversation(request.conv_id)
+    # add the last request
+    new_msg = HumanMessage(request.user_query)
+    add_msg(request.conv_id, new_msg)
 
-    # if we don't find data
-    no_msg = "Nothing to analyze. Maybe you should request for some data."
+    msgs = get_conversation(request.conv_id)
 
-    # search in the conversation, starting from the last to the first
-    # the first object of type data
-    data = backward_search(conv)
+    # build the chain
+    llm_c = llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
 
-    if data is not None:
-        # ok, call LLM to analyze data
-        result = analize_data(request.user_query, data)
-    else:
-        result = no_msg
+    analyze_chain = analyze_template | llm_c
 
-    return result
+    ai_message = analyze_chain.invoke({"msgs": msgs})
+
+    return ai_message
 
 
-def handle_generate_and_exec_sql_v2(request):
+def generate_and_exec_sql_v2(request):
     """
     handle a request to generate sql and execute it for v2 api
+
+    for now it doesn't use msg history
     """
     user_query = request.user_query
 
     logger.info("User query: %s...", user_query)
+
+    # add the last request
+    new_msg = HumanMessage(user_query)
+    add_msg(request.conv_id, new_msg)
 
     rows = None
     if len(user_query) > 0:
@@ -337,7 +336,8 @@ def handle_generic_request_v2(request):
 
         try:
             # try to catch the case where the SQL generated is not correct
-            output = handle_generate_and_exec_sql_v2(request)
+            output = generate_and_exec_sql_v2(request)
+
         except ValueError:
             # return an error to UI
             msg = "SQL not generated !"
@@ -353,8 +353,10 @@ def handle_generic_request_v2(request):
 
     elif classification == "analyze_data":
         # generates a report
+        ai_message = explain_ai_response_v2(request)
+
         output_type = "analysis"
-        output = handle_explain_ai_response_v2(request)
+        output = ai_message.content
 
     elif classification == "not_defined":
         output_type = "not_defined"
@@ -369,13 +371,20 @@ def handle_generic_request_v2(request):
         output = ""
         logger.error(msg)
 
-    # add to the conversation history
-    obj_input = {"status": "OK", "type": "request", "content": request.user_query}
-    add_msg(request.conv_id, obj_input)
-    # result is a dict with the structure you see below
-    obj_output = {"status": status, "type": output_type, "content": output, "msg": msg}
-    add_msg(request.conv_id, obj_output)
+    # add the input to the conversation history is handled by the function handling the request
 
+    if classification == "generate_sql":
+        # add output data to msgs history
+        data_msg = HumanMessage(
+            content="These are the data for your analysis.\nData:\n" + str(output)
+        )
+
+        add_msg(request.conv_id, data_msg)
+    else:
+        # add the answer from LLM
+        add_msg(request.conv_id, AIMessage(output))
+
+    obj_output = {"status": status, "type": output_type, "content": output, "msg": msg}
     # prepare as json for the output
     result = json.dumps(obj_output)
 
