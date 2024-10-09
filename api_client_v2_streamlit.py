@@ -42,6 +42,26 @@ def convert_to_json(response_content):
         return None
 
 
+def init_session_state():
+    if "request_sent" not in st.session_state:
+        st.session_state["request_sent"] = False
+    if "conv_id" not in st.session_state:
+        st.session_state["conv_id"] = ""
+    if "user_query" not in st.session_state:
+        st.session_state["user_query"] = ""
+
+
+def reset_conversation():
+    conv_id = st.session_state["conv_id"]
+    params = {"conv_id": conv_id}
+    URL = f"{API_URL}/v2/delete"
+
+    response = requests.delete(URL, params=params, timeout=TIMEOUT)
+
+    if response.status_code == 204:
+        st.write("Conversation deleted.")
+
+
 def main():
     """
     main
@@ -50,18 +70,15 @@ def main():
         initial_sidebar_state="collapsed",
     )
 
-    st.title("Client for API v2")
+    st.title("Client for API v2.1")
 
     # Initialize session state for request_sent if it doesn't exist
-    if "request_sent" not in st.session_state:
-        st.session_state["request_sent"] = False
-    if "conv_id" not in st.session_state:
-        st.session_state["conv_id"] = ""
-    if "user_query" not in st.session_state:
-        st.session_state["user_query"] = ""
+    init_session_state()
 
     if st.sidebar.button("Reset chat"):
-        logger.info("Reset...")
+        # clear the conversation
+        logger.info("Reset conversation...")
+        reset_conversation()
 
     # Select operation
     selected_operation = st.selectbox(

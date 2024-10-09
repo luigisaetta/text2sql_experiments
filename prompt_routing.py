@@ -39,6 +39,9 @@ Classification: analyze_data
 User Query: Create a report and organize the data in a table.
 Classification: analyze_data
 
+User Query: Ok, but I want the data organized in a table.
+Classification: analyze_data
+
 User Query: Create a report called Sales in Italy. In a table shows only the sales made in Italy.
 Classification: analyze_data
 

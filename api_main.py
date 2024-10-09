@@ -226,8 +226,6 @@ def generate_and_exec_sql(request: UserInput):
 def explain_ai_response_v2(request) -> AIMessage:
     """
     handle a request to analyze or explain data or create a report
-
-    This function analyze the data
     based on the user request using an LLM
 
     data should be already in the chat history
@@ -396,7 +394,7 @@ def delete(conv_id: str):
 
     del conversations[conv_id]
 
-    return Response(content="", media_type=MEDIA_TYPE_JSON)
+    return Response(content="Conversation deleted.", media_type=MEDIA_TYPE_JSON)
 
 
 # to get the stats
