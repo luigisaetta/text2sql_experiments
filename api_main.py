@@ -223,6 +223,41 @@ def generate_and_exec_sql(request: UserInput):
 #
 # supporting functions for V2
 #
+def dispatch_request(request, classification: str):
+    """
+    Dispatch the request based on its classification.
+    Returns a dict with the status, type, content, and message.
+    """
+    status = "OK"
+    msg = ""
+
+    if classification == "generate_sql":
+        output_type = "data"
+        try:
+            output = generate_and_exec_sql_v2(request)
+        except ValueError:
+            msg = "SQL not generated!"
+            return {"status": "KO", "type": output_type, "content": "", "msg": msg}
+
+    elif classification == "analyze_data":
+        ai_message = explain_ai_response_v2(request)
+        output_type = "analysis"
+        output = ai_message.content
+
+    elif classification == "not_defined":
+        output_type = "not_defined"
+        output = "Request not defined. Please clarify and/or provide more info."
+
+    else:
+        status = "KO"
+        output_type = "not classified"
+        msg = "Request not correctly classified!"
+        output = ""
+        logger.error(msg)
+
+    return {"status": status, "type": output_type, "content": output, "msg": msg}
+
+
 def explain_ai_response_v2(request) -> AIMessage:
     """
     handle a request to analyze or explain data or create a report
@@ -298,73 +333,21 @@ def handle_generic_request_v2(request):
     # add the last request to msg history
     add_msg(request.conv_id, HumanMessage(request.user_query))
 
-    #
-    # Here is the dispatching logic
-    #
-
-    # prepare the output for normal
-    status = "OK"
-    # if ok we return content no msg
-    msg = ""
-
-    if classification == "generate_sql":
-        # sql generates data
-        output_type = "data"
-
-        try:
-            # try to catch the case where the SQL generated is not correct
-            output = generate_and_exec_sql_v2(request)
-
-        except ValueError:
-            # return an error to UI
-            msg = "SQL not generated !"
-            obj_output = {
-                "status": "KO",
-                "type": output_type,
-                "content": "",
-                "msg": msg,
-            }
-            result = json.dumps(obj_output)
-
-            return result
-
-    elif classification == "analyze_data":
-        # generates a report
-        ai_message = explain_ai_response_v2(request)
-
-        output_type = "analysis"
-        output = ai_message.content
-
-    elif classification == "not_defined":
-        output_type = "not_defined"
-        # msg to be returned to the user
-        output = "Request not defined. Please clarify and/or provide more info."
-    else:
-        # exception... could it happen? Only if router fails
-        # should not happen
-        status = "KO"
-        output_type = "not classified"
-        msg = "Dispatching: Request not correctly classified !"
-        output = ""
-        logger.error(msg)
+    # Dispatch the request
+    result = dispatch_request(request, classification)
 
     # add output to history
     if classification == "generate_sql":
-        # add output data to msgs history
         data_msg = HumanMessage(
-            content="These are the data for your analysis.\nData:\n" + str(output)
+            content="These are the data for your analysis.\nData:\n"
+            + str(result["content"])
         )
-
         add_msg(request.conv_id, data_msg)
     else:
         # add the answer from LLM
-        add_msg(request.conv_id, AIMessage(output))
+        add_msg(request.conv_id, AIMessage(result["content"]))
 
-    obj_output = {"status": status, "type": output_type, "content": output, "msg": msg}
-    # prepare as json for the output
-    result = json.dumps(obj_output)
-
-    return result
+    return json.dumps(result)
 
 
 #
