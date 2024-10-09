@@ -15,18 +15,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
 
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    MessagesPlaceholder,
-)
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
-from ai_sql_agent import AISQLAgent
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from router import Router
+from ai_sql_agent import AISQLAgent
+from ai_data_analyzer import AIDataAnalyzer
+
 from prompt_template import PROMPT_TEMPLATE
-from prompt_routing import PROMPT_CHAT_ON_DATA
 from utils import get_console_logger, to_dict
 
 from config import (
@@ -38,7 +35,6 @@ from config import (
     TEMPERATURE,
     API_HOST,
     API_PORT,
-    INDEX_MODEL_FOR_EXPLANATION,
     VERBOSE,
 )
 from config_private import COMPARTMENT_OCID
@@ -94,16 +90,7 @@ ai_sql_agent = AISQLAgent(
     PROMPT_TEMPLATE,
 )
 
-# this are preamble and template used for chat with your data
-PREAMBLE = """You are an AI assistant.
-Your task is to explain the provided data and respond to requests 
-by referencing both the given data and the conversation history.
-Base your answers strictly on the provided information and prior messages in the conversation.
-"""
-
-analyze_template = ChatPromptTemplate.from_messages(
-    [("system", PREAMBLE), MessagesPlaceholder("msgs")]
-)
+ai_data_analyzer = AIDataAnalyzer(llm_manager)
 
 
 class UserInput(BaseModel):
@@ -246,18 +233,11 @@ def explain_ai_response_v2(request) -> AIMessage:
     data should be already in the chat history
     the user request is the last msg in history
     """
-    # add the last request
-    new_msg = HumanMessage(request.user_query)
-    add_msg(request.conv_id, new_msg)
-
+    # get the history (contains already last request)
     msgs = get_conversation(request.conv_id)
 
-    # build the chain
-    llm_c = llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
-
-    analyze_chain = analyze_template | llm_c
-
-    ai_message = analyze_chain.invoke({"msgs": msgs})
+    # msgs[-1] is the last request
+    ai_message = ai_data_analyzer.analyze(msgs)
 
     return ai_message
 
@@ -271,10 +251,6 @@ def generate_and_exec_sql_v2(request):
     user_query = request.user_query
 
     logger.info("User query: %s...", user_query)
-
-    # add the last request
-    new_msg = HumanMessage(user_query)
-    add_msg(request.conv_id, new_msg)
 
     rows = None
     if len(user_query) > 0:
@@ -320,6 +296,9 @@ def handle_generic_request_v2(request):
 
     logger.info("")
     logger.info("Request classified as: %s", classification)
+
+    # add the last request to msg history
+    add_msg(request.conv_id, HumanMessage(request.user_query))
 
     #
     # Here is the dispatching logic
@@ -371,8 +350,7 @@ def handle_generic_request_v2(request):
         output = ""
         logger.error(msg)
 
-    # add the input to the conversation history is handled by the function handling the request
-
+    # add output to history
     if classification == "generate_sql":
         # add output data to msgs history
         data_msg = HumanMessage(
