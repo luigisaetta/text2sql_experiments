@@ -29,7 +29,7 @@ def get_console_logger():
     return logger
 
 
-# these 2 functions are needed to serialiaze rows returnd from query in json
+# these 2 functions are needed to serialize rows returnd from query in json
 def decimal_to_float(value):
     """
     convert a Decimal to float

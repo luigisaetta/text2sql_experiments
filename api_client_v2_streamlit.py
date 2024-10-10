@@ -6,12 +6,13 @@ import json
 import requests
 import streamlit as st
 
+from config import RETURN_DATA_AS_MARKDOWN
 from utils import get_console_logger
 
 TIMEOUT = 240
-# API_URL = "http://localhost:8888"
-API_URL = "http://130.61.114.141:8888"
-# API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
+API_URL = "http://localhost:8888"
+# API_URL = "http://130.61.114.141:8888"
+# API_URL = "https://c6fz5ip4c7ru6yndm6pqlgskmq.apigateway.eu-frankfurt-1.oci.customer-oci.com/v2"
 
 # Define the available operations
 operations = {
@@ -168,15 +169,17 @@ def main():
                 json_response = convert_to_json(response.content)
 
             if json_response:
-                logger.info("")
-                logger.info(json_response)
-                logger.info("")
-
                 # read the status
                 if json_response["status"] == "OK":
                     if json_response["type"] == "data":
                         # display a table with the data
-                        st.table(json_response["content"])
+                        if (
+                            RETURN_DATA_AS_MARKDOWN
+                            and selected_operation == "handle_request_v2"
+                        ):
+                            st.write(json_response["content"])
+                        else:
+                            st.table(json_response["content"])
                     else:
                         # display a report
                         st.write(json_response["content"])

@@ -34,6 +34,9 @@ ENABLE_AI_EXPLANATION = True
 API_HOST = "0.0.0.0"
 API_PORT = 8888
 
+# to return data from DB in markdown format
+RETURN_DATA_AS_MARKDOWN = True
+
 #
 # LLM settings
 #

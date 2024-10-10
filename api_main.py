@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
+from tabulate import tabulate
 
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
@@ -36,6 +37,7 @@ from config import (
     API_HOST,
     API_PORT,
     VERBOSE,
+    RETURN_DATA_AS_MARKDOWN,
 )
 from config_private import COMPARTMENT_OCID
 
@@ -236,7 +238,7 @@ def dispatch_request(request, classification: str):
         try:
             output = generate_and_exec_sql_v2(request)
         except ValueError:
-            msg = "SQL not generated!"
+            msg = "SQL not generated! Maybe we don't have the data you're requesting."
             return {"status": "KO", "type": output_type, "content": "", "msg": msg}
 
     elif classification == "analyze_data":
@@ -350,6 +352,22 @@ def handle_generic_request_v2(request):
     return json.dumps(result)
 
 
+def return_as_markdown(result: str) -> str:
+    """ "
+    10.10.2024: introduced to support Apex UI for UK Sandox
+    not being able to parse JSON
+    """
+    result_json = json.loads(result)
+    if result_json["type"] == "data":
+        result_json["content"] = tabulate(
+            result_json["content"], headers="keys", tablefmt="pipe"
+        )
+        # to return go back to string
+        result = json.dumps(result_json)
+
+    return result
+
+
 #
 # HTTP Operations for V2
 #
@@ -359,6 +377,10 @@ def generic_data_request(request: UserInput):
     Could be generate SQL-and-exec or explain or create a report
     """
     result = handle_generic_request_v2(request)
+
+    # added to support Apex UI for UK Sandbox
+    if RETURN_DATA_AS_MARKDOWN:
+        result = return_as_markdown(result)
 
     return Response(content=result, media_type=MEDIA_TYPE_JSON)
 
