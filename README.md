@@ -1,14 +1,14 @@
 # Text2SQL experiments 
 This repository contains some experiments on using LLM for Text2SQL
 
-This code is for my personal learning and experiments. 
-You can take it for the same purpouses, but please, don't expect support from me now.
+This code is for personal learning and experiments. 
+You can take it for the same purpouses, but please, don't expect support now.
 In addition, the code is changing frequently.
 
 ## Notes
 * for now the code has been tested only with **ADB**
-* in V2 the schema has been partitioned by tables. We store tables summaries in a Vector Store
-and apply similarity search.
+* in V2 the schema has been partitioned by tables. 
+We store tables summaries in a Vector Store and apply similarity search.
 
 ## References
 * [Pinterest Text2SQL](https://medium.com/pinterest-engineering/how-we-built-text-to-sql-at-pinterest-30bad30dabff)

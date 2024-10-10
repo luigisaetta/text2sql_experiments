@@ -9,7 +9,8 @@ import streamlit as st
 from utils import get_console_logger
 
 TIMEOUT = 240
-API_URL = "http://localhost:8888"
+# API_URL = "http://localhost:8888"
+API_URL = "http://130.61.114.141:8888"
 # API_URL = "https://cnqvldwtqizheroelszndsocdy.apigateway.us-chicago-1.oci.customer-oci.com/text2sql"
 
 # Define the available operations
@@ -18,7 +19,25 @@ operations = {
     "get_cache_stats": "/v2/get_cache_stats",
 }
 
+# examples of question on SH and HR schema
+sample_questions = [
+    "What is the total number of employees in the company as of today?",
+    "Can you show me a list of all departments along with the headcount in each department?",
+    "Retrieve the product names and the total amount sold for each product.",
+    "Which employees have joined the company in 2018, and what are their respective departments?",
+    "How many products have been sold in 2000, categorized by region and product type?",
+]
+
 logger = get_console_logger()
+
+
+def abbreviate_question(question, max_length=40):
+    """
+    Abbreviate the sample question for better presentation in UI
+    """
+    if len(question) > max_length:
+        return question[:max_length] + "..."
+    return question
 
 
 def convert_to_json(response_content):
@@ -40,6 +59,11 @@ def convert_to_json(response_content):
     except Exception as e:
         st.error(f"Error converting response to JSON: {e}")
         return None
+
+
+# Add the radio buttons to the sidebar with abbreviated questions
+# Create abbreviated versions of the sample questions for the sidebar
+abbreviated_questions = [abbreviate_question(q) for q in sample_questions]
 
 
 def init_session_state():
@@ -69,8 +93,20 @@ def main():
     st.set_page_config(
         initial_sidebar_state="collapsed",
     )
+    st.title("SQL Agent - Client for API v2.1")
 
-    st.title("Client for API v2.1")
+    # to handle the sample questions
+    selected_abbreviation = st.sidebar.radio(
+        "Choose a question:", abbreviated_questions
+    )
+
+    # Find the full question corresponding to the selected abbreviation
+    selected_question = sample_questions[
+        abbreviated_questions.index(selected_abbreviation)
+    ]
+
+    if selected_question:
+        st.session_state.user_query = selected_question
 
     # Initialize session state for request_sent if it doesn't exist
     init_session_state()
@@ -81,14 +117,14 @@ def main():
         reset_conversation()
 
     # Select operation
-    selected_operation = st.selectbox(
+    selected_operation = st.sidebar.selectbox(
         "Select an API Operation", list(operations.keys())
     )
 
     if selected_operation in ["handle_request_v2"]:
         st.subheader("Input data")
-        conv_id = st.text_input("Conversation ID")
-        user_query = st.text_area("User Query")
+        conv_id = st.text_input("Conversation ID", value="1234")
+        user_query = st.text_area("User Query", st.session_state.user_query)
 
         # Update session state if inputs change
         if (
