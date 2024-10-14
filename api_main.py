@@ -248,7 +248,8 @@ def dispatch_request(request, classification: str):
 
     elif classification == "not_defined":
         output_type = "not_defined"
-        output = "Request not defined. Please clarify and/or provide more info."
+        output = """Hi, your request is not completely clear to me. 
+        Could you please clarify your request and/or provide more info?"""
 
     else:
         status = "KO"
@@ -322,20 +323,29 @@ def handle_generic_request_v2(request):
     """
     get a generic request and dispatch
     """
+    # unpack
+    user_query = request.user_query
+    conv_id = request.conv_id
 
     logger.info("")
-    logger.info("Request received: %s", request.user_query)
+    logger.info("Request received: %s", user_query)
 
-    # classify using the router (LLM based)
-    classification = router.classify(request.user_query)
+    # try to see if the request is in cache, to avoid a call to the router
+    if ai_sql_agent.get_sql_from_cache(user_query) is not None:
+        # already in cache: the request is to generate_sql!
+        classification = "generate_sql"
+        # then dispatch will get from the cache
+    else:
+        # classify using the router (LLM based)
+        classification = router.classify(user_query)
 
     logger.info("")
     logger.info("Request classified as: %s", classification)
 
     # add the last request to msg history
-    add_msg(request.conv_id, HumanMessage(request.user_query))
+    add_msg(request.conv_id, HumanMessage(user_query))
 
-    # Dispatch the request
+    # Dispatch the request: call the actions
     result = dispatch_request(request, classification)
 
     # add output to history
@@ -344,10 +354,10 @@ def handle_generic_request_v2(request):
             content="These are the data for your analysis.\nData:\n"
             + str(result["content"])
         )
-        add_msg(request.conv_id, data_msg)
+        add_msg(conv_id, data_msg)
     else:
         # add the answer from LLM
-        add_msg(request.conv_id, AIMessage(result["content"]))
+        add_msg(conv_id, AIMessage(result["content"]))
 
     return json.dumps(result)
 

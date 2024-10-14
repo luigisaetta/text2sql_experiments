@@ -14,6 +14,7 @@ Instructions:
 - if the request requires analysis of data from a LLM the classification must be: analyze_data
 - if the request is for clarification or contains a question on a report you generated the classification must be: analyze_data
 - if you don't have enough information to classify, the classification must be: not_defined
+- if the request asks to drop a table, delete data, update data or insert data, the classification must be: not_defined 
 - provide only the JSON result. Don't add other comments or questions.
 - enclose always the array in triple backtick, don't start with 'json'
 
@@ -54,18 +55,11 @@ Classification: analyze_data
 User Query: I want you to do a bunch of things.
 Classification: not_defined
 
-===Question
-{question}
+User Query: Ok, create a summary.
+Classification: analyze_data
 
-"""
-
-PROMPT_CHAT_ON_DATA = """
-You are an AI assistant that can help understanding, summarizing and analyzing data provided
-in the chat history.
-Answer the question based only on the provided data and your knowledge.
-
-===Data
-{data}
+User Query: What are the kind of questions I can ask on these data?
+Classification: analyze_data
 
 ===Question
 {question}

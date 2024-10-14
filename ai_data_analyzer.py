@@ -1,7 +1,7 @@
 """
 AI DataAnalyzer
 
-the componen, based on LLM, used to create reports based on Data
+the component, based on LLM, used to create reports based on Data
 """
 
 from langchain_core.prompts import (

@@ -38,7 +38,7 @@ class RequestCache:
 
     def get_request_with_stats(self, request_nl):
         """
-        get and entry (with stats)
+        get an entry (with stats)
         """
         if request_nl in self.cache:
             data = self.cache[request_nl]
@@ -52,7 +52,7 @@ class RequestCache:
                 "total_count": data["count"],
                 "success_count": data["success"],
                 "failure_count": data["failures"],
-                "average_generation_time": avg_time,
+                "average_generation_time": str(avg_time),
             }
         return None
 

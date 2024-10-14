@@ -4,7 +4,6 @@ Client for API v2
 
 import json
 import requests
-import random
 import streamlit as st
 
 from config import RETURN_DATA_AS_MARKDOWN
@@ -124,7 +123,7 @@ def main():
     )
 
     if selected_operation in ["chat_with_your_data"]:
-        conv_id = st.text_input("Conversation ID", value=42)
+        conv_id = st.text_input("Conversation ID", value="42")
         user_query = st.text_area("User Query", st.session_state.user_query)
 
         # Update session state if inputs change

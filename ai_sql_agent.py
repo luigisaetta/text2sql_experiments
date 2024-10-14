@@ -121,6 +121,19 @@ class AISQLAgent:
 
         return restricted_schema
 
+    def get_sql_from_cache(self, user_request):
+        """
+        try to find the request (NL) in the SQL cache
+        """
+        cached_result = self.request_cache.get_request_with_stats(user_request)
+        if cached_result:
+            if len(cached_result["sql"]) > 0:
+                self.logger.info("")
+                self.logger.info("Found request in cache...")
+                return cached_result["sql"]
+        # if not found return None
+        return None
+
     def generate_sql_query(self, user_request, user_group_id=None):
         """
         Generate the SQL query based on the user request and restricted schema.
@@ -132,12 +145,11 @@ class AISQLAgent:
             str: The generated SQL query.
         """
         # if the request is found in cache return it
-        cached_result = self.request_cache.get_request_with_stats(user_request)
-        if cached_result:
-            if len(cached_result["sql"]) > 0:
-                self.logger.info("")
-                self.logger.info("Found request in cache...")
-                return cached_result["sql"]
+        sql_in_cache = self.get_sql_from_cache(user_request)
+
+        if sql_in_cache is not None:
+            # return immediately
+            return sql_in_cache
 
         # generate
         time_start = time.time()
@@ -153,7 +165,7 @@ class AISQLAgent:
             self.prompt_template,
             user_group_id,
         )
-        time_elapsed = time.time() - time_start
+        time_elapsed = round(time.time() - time_start, 1)
 
         if len(sql_query) > 0:
             # ok, generated

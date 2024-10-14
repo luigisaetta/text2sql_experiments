@@ -4,7 +4,6 @@ Client for API v2
 
 import json
 import requests
-import random
 import streamlit as st
 
 from config import RETURN_DATA_AS_MARKDOWN
@@ -21,13 +20,18 @@ operations = {
     "get_SQL": "/v2/get_cache_stats",
 }
 
-# examples of question on SH and HR schema
+# examples of question on Ebiz schema
 sample_questions = [
-    "What is the total number of employees in the company as of today?",
-    "Can you show me a list of all departments along with the headcount in each department?",
-    "Retrieve the product names and the total amount sold for each product.",
-    "Which employees have joined the company in 2018, and what are their respective departments?",
-    "How many products have been sold in 2000, categorized by region and product type?",
+    "show all the distinct absence types that have been reported by employee",
+    "show distinct absence types and the number of employees who reported them in 2017",
+    "show all the employees names that have reported absence type name like 'Sick%'.",
+    """show all the employee name that have reported absence type like 'Sick%' 
+and the total number of hours reported. Order by number of hours descending""",
+    """For every department shows the department name, the absence type name 
+and total number of hour reported""",
+    """show the names of all employees who registered absences started in 2017 
+and the total hours for each absence type name""",
+    "show all the employee located in US who have reported absences in 2017",
 ]
 
 logger = get_console_logger()
@@ -124,7 +128,7 @@ def main():
     )
 
     if selected_operation in ["chat_with_your_data"]:
-        conv_id = st.text_input("Conversation ID", value=42)
+        conv_id = st.text_input("Conversation ID", value="42")
         user_query = st.text_area("User Query", st.session_state.user_query)
 
         # Update session state if inputs change
