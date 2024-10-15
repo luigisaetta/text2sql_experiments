@@ -247,10 +247,12 @@ def dispatch_request(request, classification: str):
         output = ai_message.content
 
     elif classification == "not_defined":
-        output_type = "not_defined"
-        output = """Hi, your request is not completely clear to me. 
+        output_type = classification
+        output = """Hi, your request is not completely clear to me.
         Could you please clarify your request and/or provide more info?"""
-
+    elif classification == "not_allowed":
+        output_type = classification
+        output = "Hi, your request is not allowed."
     else:
         status = "KO"
         output_type = "not classified"

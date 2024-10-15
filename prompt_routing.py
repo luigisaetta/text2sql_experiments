@@ -14,7 +14,7 @@ Instructions:
 - if the request requires analysis of data from a LLM the classification must be: analyze_data
 - if the request is for clarification or contains a question on a report you generated the classification must be: analyze_data
 - if you don't have enough information to classify, the classification must be: not_defined
-- if the request asks to drop a table, delete data, update data or insert data, the classification must be: not_defined 
+- if the request asks to drop a table, delete data, update data or insert data, the classification must be: not_allowed 
 - provide only the JSON result. Don't add other comments or questions.
 - enclose always the array in triple backtick, don't start with 'json'
 

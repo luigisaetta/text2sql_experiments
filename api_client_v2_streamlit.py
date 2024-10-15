@@ -4,10 +4,9 @@ Client for API v2
 
 import json
 import requests
-import random
 import streamlit as st
 
-from config import RETURN_DATA_AS_MARKDOWN
+from config import SCENARIO, RETURN_DATA_AS_MARKDOWN
 from utils import get_console_logger
 
 TIMEOUT = 240
@@ -16,19 +15,35 @@ API_URL = "http://localhost:8888"
 # API_URL = "https://c6fz5ip4c7ru6yndm6pqlgskmq.apigateway.eu-frankfurt-1.oci.customer-oci.com/v2"
 
 # Define the available operations
+NAMES = ["chat_with_data", "get_SQL"]
+
 operations = {
-    "chat_with_your_data": "/v2/handle_data_request",
-    "get_SQL": "/v2/get_cache_stats",
+    NAMES[0]: "/v2/handle_data_request",
+    NAMES[1]: "/v2/get_cache_stats",
 }
 
 # examples of question on SH and HR schema
-sample_questions = [
-    "What is the total number of employees in the company as of today?",
-    "Can you show me a list of all departments along with the headcount in each department?",
-    "Retrieve the product names and the total amount sold for each product.",
-    "Which employees have joined the company in 2018, and what are their respective departments?",
-    "How many products have been sold in 2000, categorized by region and product type?",
-]
+sample_questions = {
+    "general": [
+        "What is the total number of employees in the company as of today?",
+        "Can you show me a list of all departments along with the headcount in each department?",
+        "Retrieve the product names and the total amount sold for each product.",
+        "Which employees have joined the company in 2018, and what are their respective departments?",
+        "How many products have been sold in 2000, categorized by region and product type?",
+    ],
+    "ebiz": [
+        "show all the distinct absence types that have been reported by employee",
+        "show distinct absence types and the number of employees who reported them in 2017",
+        "show all the employees names that have reported absence type name like 'Sick%'.",
+        """show all the employee name that have reported absence type like 'Sick%' 
+and the total number of hours reported. Order by number of hours descending""",
+        """For every department shows the department name, the absence type name 
+and total number of hour reported""",
+        """show the names of all employees who registered absences started in 2017 
+and the total hours for each absence type name""",
+        "show all the employee located in US who have reported absences in 2017",
+    ],
+}
 
 logger = get_console_logger()
 
@@ -65,21 +80,29 @@ def convert_to_json(response_content):
 
 # Add the radio buttons to the sidebar with abbreviated questions
 # Create abbreviated versions of the sample questions for the sidebar
-abbreviated_questions = [abbreviate_question(q) for q in sample_questions]
+abbreviated_questions = [abbreviate_question(q) for q in sample_questions[SCENARIO]]
 
 
 def init_session_state():
+    """
+    Initialise the session state
+    """
     if "request_sent" not in st.session_state:
         st.session_state["request_sent"] = False
     if "conv_id" not in st.session_state:
         st.session_state["conv_id"] = ""
     if "user_query" not in st.session_state:
         st.session_state["user_query"] = ""
+    if "sql_query" not in st.session_state:
+        st.session_state["sql_query"] = "SQL Query"
 
 
 def reset_conversation():
-    conv_id = st.session_state["conv_id"]
-    params = {"conv_id": conv_id}
+    """
+    reste the converdation on the API end
+    """
+    # params fo rthe API call
+    params = {"conv_id": st.session_state["conv_id"]}
     URL = f"{API_URL}/v2/delete"
 
     response = requests.delete(URL, params=params, timeout=TIMEOUT)
@@ -103,7 +126,7 @@ def main():
     )
 
     # Find the full question corresponding to the selected abbreviation
-    selected_question = sample_questions[
+    selected_question = sample_questions[SCENARIO][
         abbreviated_questions.index(selected_abbreviation)
     ]
 
@@ -119,11 +142,13 @@ def main():
         reset_conversation()
 
     # Select operation
-    selected_operation = st.sidebar.selectbox(
-        "Select an API Operation", list(operations.keys())
-    )
+    selected_operation = st.sidebar.selectbox("Select an API Operation", NAMES)
 
-    if selected_operation in ["chat_with_your_data"]:
+    # this will contain the generated SQL
+    st.sidebar.text_area("SQL Query", st.session_state.sql_query, disabled=True)
+
+    if selected_operation in [NAMES[0]]:
+        # chat_with_data
         conv_id = st.text_input("Conversation ID", value=42)
         user_query = st.text_area("User Query", st.session_state.user_query)
 
@@ -151,8 +176,10 @@ def main():
 
         # here we call the api
         with st.spinner():
-            if selected_operation == "chat_with_your_data":
+            if selected_operation == NAMES[0]:
                 response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+
+                st.session_state.sql_query = "Test it"
             else:
                 response = requests.get(endpoint, timeout=TIMEOUT)
 
@@ -173,10 +200,7 @@ def main():
                 if json_response["status"] == "OK":
                     if json_response["type"] == "data":
                         # display a table with the data
-                        if (
-                            RETURN_DATA_AS_MARKDOWN
-                            and selected_operation == "chat_with_your_data"
-                        ):
+                        if RETURN_DATA_AS_MARKDOWN and selected_operation == NAMES[0]:
                             st.write(json_response["content"])
                         else:
                             st.table(json_response["content"])

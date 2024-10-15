@@ -13,7 +13,8 @@ from utils import get_console_logger
 from config import INDEX_MODEL_FOR_ROUTING, DEBUG
 
 # the list of string used as labels
-ALLOWED_VALUES = ["generate_sql", "analyze_data", "not_defined"]
+# (15/10) not allowed introduced to protect from DDL and DML
+ALLOWED_VALUES = ["generate_sql", "analyze_data", "not_defined", "not_allowed"]
 
 # this is the JSON schema for the output
 json_schema = {

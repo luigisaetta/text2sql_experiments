@@ -25,6 +25,9 @@ from config_private import (
 VERBOSE = True
 DEBUG = False
 
+# to define sample questions (or "ebiz")
+SCENARIO = "ebiz"
+
 # enable use of reranker (LLM) to select table for SQL generation
 ENABLE_RERANKING = True
 # if True add the AI explanation
@@ -75,9 +78,9 @@ EMBED_ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.
 #
 # here we consolidate in a single structure configs to access DB
 # data DB config: this is to connect the data schema
-WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
+# WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
 # ebiz uk sandbox
-# WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_EBIZ"
+WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_EBIZ"
 
 CONNECT_ARGS = {
     "user": DB_USER,
@@ -104,9 +107,9 @@ CONNECT_ARGS_VECTOR = {
 # the name of the table where we store tables summary and embeddings
 
 # this one is dedicated to Ebiz tests
-# VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
+VECTOR_TABLE_NAME = "SCHEMA_VECTORS"
 # this one is dedicated to our internal tests
-VECTOR_TABLE_NAME = "SCHEMA_VECTORS_SH"
+# VECTOR_TABLE_NAME = "SCHEMA_VECTORS_SH"
 
 # the strategy for similarity search Don't change
 DISTANCE_STRATEGY = DistanceStrategy.COSINE
@@ -118,7 +121,6 @@ TABLE_NAME_SQ = "sample_queries"
 # this config is to limit the list of tables we read from the Data Schema
 # should contain a prefix like D_ or ALL
 INCLUDE_TABLES_PREFIX = "ALL"
-
 
 # number of samples read from each table
 N_SAMPLES = 3

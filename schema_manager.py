@@ -55,6 +55,12 @@ class SchemaManager(ABC):
         self.llm_manager = llm_manager
         self.logger = logger
 
+        # for _process schema
+        self.tables_list = []
+        # in this list we store the chunk of schema for each table
+        self.tables_chunk = []
+        self.summaries = []
+
     @abstractmethod
     def init_schema_manager(self):
         """ "

@@ -25,6 +25,9 @@ from config_private import (
 VERBOSE = True
 DEBUG = False
 
+# to define sample questions (or "ebiz")
+SCENARIO = "general"
+
 # enable use of reranker (LLM) to select table for SQL generation
 ENABLE_RERANKING = True
 # if True add the AI explanation
