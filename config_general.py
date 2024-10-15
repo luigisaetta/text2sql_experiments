@@ -20,12 +20,24 @@ from config_private import (
 )
 
 #
+# YOUR SETUP HERE
+# Here are the params that must be localized for each setup
+#
+# this is the wallet for the DATA DB
+WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
+# this is for the VECTOR (and metadata) DB
+VECTOR_WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_VECTOR"
+
+# end of your mandatory setup
+
+
+#
 # General settings
 #
 VERBOSE = True
 DEBUG = False
 
-# to define sample questions (or "ebiz")
+# to define sample questions ("general" or "ebiz")
 SCENARIO = "general"
 
 # enable use of reranker (LLM) to select table for SQL generation
@@ -78,10 +90,6 @@ EMBED_ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.
 #
 # here we consolidate in a single structure configs to access DB
 # data DB config: this is to connect the data schema
-WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET"
-# ebiz uk sandbox
-# WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_EBIZ"
-
 CONNECT_ARGS = {
     "user": DB_USER,
     "password": DB_PWD,
@@ -94,8 +102,6 @@ CONNECT_ARGS = {
 # for VECTOR DB config: this is to connect to the vector store schema
 # could be the same or a nother wallet, depends on DB used.
 # DB_USER is different !!! Don't put the VECTORS in the data schema
-VECTOR_WALLET_DIR = "/Users/lsaetta/Progetti/text2sql_experiments/WALLET_VECTOR"
-
 CONNECT_ARGS_VECTOR = {
     "user": VECTOR_DB_USER,
     "password": VECTOR_DB_PWD,

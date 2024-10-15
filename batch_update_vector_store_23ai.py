@@ -20,7 +20,7 @@ from config import (
 )
 from config_private import COMPARTMENT_OCID
 
-tables_list = ["D_ABSENCE_TYPE", "F_ABSENCE"]
+tables_list = ["D_LOCATION"]
 
 #
 # Main

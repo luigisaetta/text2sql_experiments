@@ -247,12 +247,18 @@ def dispatch_request(request, classification: str):
         output = ai_message.content
 
     elif classification == "not_defined":
-        output_type = classification
-        output = """Hi, your request is not completely clear to me.
-        Could you please clarify your request and/or provide more info?"""
+        # output_type = classification
+        # output = """Hi, your request is not completely clear to me.
+        # Could you please clarify your request and/or provide more info?"""
+        # 15/10/2024 now it goes to LLM to create an asnwer based on msgs
+        ai_message = clarify_v2(request)
+        output_type = "analysis"
+        output = ai_message.content
+
     elif classification == "not_allowed":
         output_type = classification
         output = "Hi, your request is not allowed."
+
     else:
         status = "KO"
         output_type = "not classified"
@@ -261,6 +267,17 @@ def dispatch_request(request, classification: str):
         logger.error(msg)
 
     return {"status": status, "type": output_type, "content": output, "msg": msg}
+
+
+def clarify_v2(request) -> AIMessage:
+    """
+    If router return not_defined
+    """
+    # get the history (contains already last request)
+    msgs = get_conversation(request.conv_id)
+
+    # msgs[-1] is the last request
+    return ai_data_analyzer.answer_not_defined(msgs)
 
 
 def explain_ai_response_v2(request) -> AIMessage:
@@ -275,9 +292,7 @@ def explain_ai_response_v2(request) -> AIMessage:
     msgs = get_conversation(request.conv_id)
 
     # msgs[-1] is the last request
-    ai_message = ai_data_analyzer.analyze(msgs)
-
-    return ai_message
+    return ai_data_analyzer.analyze(msgs)
 
 
 def generate_and_exec_sql_v2(request):

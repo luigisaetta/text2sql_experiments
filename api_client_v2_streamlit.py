@@ -31,6 +31,7 @@ sample_questions = {
         "Which employees have joined the company in 2018, and what are their respective departments?",
         "How many products have been sold in 2000, categorized by region and product type?",
     ],
+    # for Ebiz schema
     "ebiz": [
         "show all the distinct absence types that have been reported by employee",
         "show distinct absence types and the number of employees who reported them in 2017",
@@ -103,29 +104,19 @@ def reset_conversation():
     """
     # params fo rthe API call
     params = {"conv_id": st.session_state["conv_id"]}
-    URL = f"{API_URL}/v2/delete"
+    url = f"{API_URL}/v2/delete"
 
-    response = requests.delete(URL, params=params, timeout=TIMEOUT)
+    response = requests.delete(url, params=params, timeout=TIMEOUT)
 
     if response.status_code == 204:
         st.write("Conversation deleted.")
 
 
-def main():
-    """
-    main
-    """
-    st.set_page_config(
-        initial_sidebar_state="collapsed",
-    )
-    st.title("SQL Agent - Client for API v2.2")
-
-    # to handle the sample questions
+def handle_sidebar():
+    """Handle sidebar inputs and reset logic."""
     selected_abbreviation = st.sidebar.radio(
         "Choose a question:", abbreviated_questions
     )
-
-    # Find the full question corresponding to the selected abbreviation
     selected_question = sample_questions[SCENARIO][
         abbreviated_questions.index(selected_abbreviation)
     ]
@@ -133,19 +124,40 @@ def main():
     if selected_question:
         st.session_state.user_query = selected_question
 
-    # Initialize session state for request_sent if it doesn't exist
-    init_session_state()
-
     if st.sidebar.button("Reset chat"):
-        # clear the conversation
         logger.info("Reset conversation...")
         reset_conversation()
 
-    # Select operation
     selected_operation = st.sidebar.selectbox("Select an API Operation", NAMES)
 
-    # this will contain the generated SQL
-    st.sidebar.text_area("SQL Query", st.session_state.sql_query, disabled=True)
+    return selected_operation
+
+
+def handle_api_request(selected_operation, request_body):
+    """Make the API request and handle response."""
+    endpoint = API_URL + operations[selected_operation]
+
+    with st.spinner():
+        if selected_operation == NAMES[0]:
+            response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
+        else:
+            response = requests.get(endpoint, timeout=TIMEOUT)
+
+    return response
+
+
+def main():
+    """
+    main
+    """
+    st.set_page_config(initial_sidebar_state="collapsed")
+    st.title("SQL Agent - Client for API v2.2")
+
+    # Handle sidebar inputs and reset
+    selected_operation = handle_sidebar()
+
+    # Initialize session state for request_sent if it doesn't exist
+    init_session_state()
 
     if selected_operation in [NAMES[0]]:
         # chat_with_data
@@ -168,20 +180,14 @@ def main():
 
         # Create a dictionary for the request body
         request_body = {"conv_id": conv_id, "user_query": user_query}
+    else:
+        # GET operation, no body needed
+        request_body = None
 
     # API call
     if st.button("Send Request") and not st.session_state["request_sent"]:
         # Make the API request to the selected operation
-        endpoint = API_URL + operations[selected_operation]
-
-        # here we call the api
-        with st.spinner():
-            if selected_operation == NAMES[0]:
-                response = requests.post(endpoint, json=request_body, timeout=TIMEOUT)
-
-                st.session_state.sql_query = "Test it"
-            else:
-                response = requests.get(endpoint, timeout=TIMEOUT)
+        response = handle_api_request(selected_operation, request_body)
 
         # Mark the request as sent to avoid multiple submissions
         st.session_state["request_sent"] = True

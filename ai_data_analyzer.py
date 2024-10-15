@@ -2,6 +2,9 @@
 AI DataAnalyzer
 
 the component, based on LLM, used to create reports based on Data
+
+It is also used to generate an answer when the request is not understood
+by the router
 """
 
 from langchain_core.prompts import (
@@ -18,11 +21,26 @@ from utils import get_console_logger
 PREAMBLE = """You are an AI assistant.
 Your task is to explain the provided data and respond to requests 
 by referencing both the given data and the conversation history.
-Base your answers strictly on the provided information and prior messages in the conversation.
+Base your answers strictly on the question, the provided information 
+and prior messages in the conversation.
 """
 
+# this are preamble and template used for chat with your data
+PREAMBLE_U = """You are an AI assistant.
+Your task is to answer to requests 
+by referencing the conversation history.
+Base your answers strictly on the question, the provided information 
+and prior messages in the conversation.
+If the request is not clear, make the appropriate questions to clarify.
+"""
+
+# preamble is passed as a system message
 analyze_template = ChatPromptTemplate.from_messages(
     [("system", PREAMBLE), MessagesPlaceholder("msgs")]
+)
+
+clarify_template = ChatPromptTemplate.from_messages(
+    [("system", PREAMBLE_U), MessagesPlaceholder("msgs")]
 )
 
 
@@ -52,6 +70,16 @@ class AIDataAnalyzer:
         analyze_chain = analyze_template | llm_c
 
         # msgs[-1] is the last request
-        ai_message = analyze_chain.invoke({"msgs": msgs})
+        return analyze_chain.invoke({"msgs": msgs})
 
-        return ai_message
+    def answer_not_defined(self, msgs):
+        """
+        To handle a request not classified by the router
+        """
+
+        # build the chain
+        llm_c = self.llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
+        clarify_chain = clarify_template | llm_c
+
+        # msgs[-1] is the last request
+        return clarify_chain.invoke({"msgs": msgs})
