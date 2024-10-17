@@ -30,6 +30,7 @@ from config import (
     EMBED_MODEL_NAME,
     EMBED_ENDPOINT,
     INDEX_MODEL_FOR_EXPLANATION,
+    SCENARIO
 )
 from config_private import COMPARTMENT_OCID
 
@@ -111,37 +112,38 @@ st.title("Oracle SQL Agent V2.2")
 # section to handle sample question
 st.sidebar.title("Sample questions")
 
-# per commentare tutte insieme CMd + K, cmd +C
-# sample_questions = [
-#    "What is the total number of employees in the company as of today?",
-#    "Can you show me a list of all departments along with the headcount in each department?",
-#    "Retrieve the product names and the total amount sold for each product.",
-#    "Which employees have joined the company in 2018, and what are their respective departments?",
-#    """How many products have been sold in the last 30 days,
-# categorized by region and product type?""",
-# ]
-
-# for e-biz
-sample_questions = [
-    "show all the distinct absence types that have been reported by employee",
-    "show distinct absence types and the number of employees who reported them in 2017",
-    "show all the employees names that have reported absence type name like 'Sick%'.",
-    """show all the employee name that have reported absence type like 'Sick%' 
+# examples of question on SH and HR schema
+sample_questions = {
+    "general": [
+        "What is the total number of employees in the company as of today?",
+        "Can you show me a list of all departments along with the headcount in each department?",
+        "Retrieve the product names and the total amount sold for each product.",
+        "Which employees have joined the company in 2018, and what are their respective departments?",
+        "How many products have been sold in 2000, categorized by region and product type?",
+    ],
+    # for Ebiz schema
+    "ebiz": [
+        "show all the distinct absence types that have been reported by employee",
+        "show distinct absence types and the number of employees who reported them in 2017",
+        "show all the employees names that have reported absence type name like 'Sick%'.",
+        """show all the employee name that have reported absence type like 'Sick%' 
 and the total number of hours reported. Order by number of hours descending""",
-    """For every department shows the department name, the absence type name 
+        """For every department shows the department name, the absence type name 
 and total number of hour reported""",
-    """show the names of all employees who registered absences started in 2017 
+        """show the names of all employees who registered absences started in 2017 
 and the total hours for each absence type name""",
-    "show all the employee located in US who have reported absences in 2017",
-]
+        "show all the employee located in US who have reported absences in 2017",
+    ],
+}
+
 # Create abbreviated versions of the sample questions for the sidebar
-abbreviated_questions = [abbreviate_question(q) for q in sample_questions]
+abbreviated_questions = [abbreviate_question(q) for q in sample_questions[SCENARIO]]
 
 # Add the radio buttons to the sidebar with abbreviated questions
 selected_abbreviation = st.sidebar.radio("Choose a question:", abbreviated_questions)
 
 # Find the full question corresponding to the selected abbreviation
-selected_question = sample_questions[abbreviated_questions.index(selected_abbreviation)]
+selected_question = sample_questions[SCENARIO][abbreviated_questions.index(selected_abbreviation)]
 
 if selected_question:
     st.session_state.user_query = (
@@ -154,6 +156,8 @@ st.sidebar.title("Features selection")
 CHECK_AI_EXPL_DISABLED = not ENABLE_AI_EXPLANATION
 
 check_show_sql = st.sidebar.checkbox("Show SQL")
+
+check_show_data = st.sidebar.checkbox("Show Data")
 
 check_enable_ai_expl = st.sidebar.checkbox(
     "Enable AI explanation", disabled=CHECK_AI_EXPL_DISABLED
@@ -227,8 +231,9 @@ if submit_button and user_query:
 
                     logger.info("Found %s rows..", len(rows))
 
-                st.write("**Query Results:**")
-                st.table(rows)
+                if check_show_data:
+                    st.write("**Query Results:**")
+                    st.table(rows)
 
                 # 2. analyze results with AI
                 try:

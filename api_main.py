@@ -104,9 +104,9 @@ rag_agent = AIRAGAgent(
     EMBED_MODEL_NAME,
     EMBED_ENDPOINT,
     0.1,
-    None,
-    logger
+    logger,
 )
+
 
 class UserInput(BaseModel):
     """

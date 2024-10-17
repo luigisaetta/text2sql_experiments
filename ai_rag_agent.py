@@ -25,7 +25,7 @@ from config import (
 )
 
 
-# the name of the table to cntain docs for policies + embeddings
+# the name of the table to contain docs for policies + embeddings
 RAG_COLLECTION_NAME = "POLICIES_COLLECTION"
 
 # this are preamble and template used for chat with your data
@@ -56,7 +56,6 @@ class AIRAGAgent:
         embed_model_name,
         embed_endpoint,
         temperature,
-        prompt_template,
         logger,
     ):
         """
@@ -69,7 +68,6 @@ class AIRAGAgent:
         self.embed_model_name = embed_model_name
         self.embed_endpoint = embed_endpoint
         self.temperature = temperature
-        self.prompt_template = prompt_template
         self.logger = logger
 
         self.llm_manager = self._initialize_llm_manager()
@@ -100,7 +98,7 @@ class AIRAGAgent:
         given a user request, get from the collection relevant chunks of doc
         """
         self.logger.info("Searching for relevant documents in Vector Store...")
-        
+
         embed_model = self._get_embed_model()
 
         with self._get_vector_db_connection() as conn:
