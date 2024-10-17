@@ -53,7 +53,7 @@ class Router:
             analyze_text
             ...
         """
-        # defne the prompt to be used with few shot examples
+        # define the prompt to be used with few shot examples
         classify_prompt = PromptTemplate.from_template(PROMPT_ROUTING)
         # get llm to be used
         llm_c = self.llm_manager.llm_models[

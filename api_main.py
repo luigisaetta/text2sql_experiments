@@ -16,12 +16,13 @@ from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
 from tabulate import tabulate
 
-from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from router import Router
 from ai_sql_agent import AISQLAgent
+from ai_rag_agent import AIRAGAgent
 from ai_data_analyzer import AIDataAnalyzer
 
 from prompt_template import PROMPT_TEMPLATE
@@ -29,6 +30,7 @@ from utils import get_console_logger, to_dict
 
 from config import (
     CONNECT_ARGS,
+    CONNECT_ARGS_VECTOR,
     MODEL_LIST,
     MODEL_ENDPOINTS,
     EMBED_MODEL_NAME,
@@ -94,6 +96,17 @@ ai_sql_agent = AISQLAgent(
 
 ai_data_analyzer = AIDataAnalyzer(llm_manager)
 
+rag_agent = AIRAGAgent(
+    CONNECT_ARGS_VECTOR,
+    MODEL_LIST,
+    MODEL_ENDPOINTS,
+    COMPARTMENT_OCID,
+    EMBED_MODEL_NAME,
+    EMBED_ENDPOINT,
+    0.1,
+    None,
+    logger
+)
 
 class UserInput(BaseModel):
     """
@@ -290,6 +303,12 @@ def explain_ai_response_v2(request) -> AIMessage:
     """
     # get the history (contains already last request)
     msgs = get_conversation(request.conv_id)
+
+    # get data from RAG
+    docs_retrieved = rag_agent.get_relevant_docs(request.user_query)
+    # add to message history
+    for doc in docs_retrieved:
+        msgs.append(SystemMessage(doc.page_content))
 
     # msgs[-1] is the last request
     return ai_data_analyzer.analyze(msgs)
