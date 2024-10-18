@@ -44,7 +44,7 @@ def create_cached_db_manager():
     """
     _db_manager = DatabaseManager(CONNECT_ARGS, logger)
 
-    if db_manager is None:
+    if _db_manager is None:
         st.error("Error setting up DBManager")
         logger.error("Error setting up DBManager")
         st.stop()
@@ -61,7 +61,7 @@ def create_cached_llm_manager():
         MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
     )
 
-    if llm_manager is None:
+    if _llm_manager is None:
         st.error("Error setting up LLMManager")
         logger.error("Error setting up LLMManager")
         st.stop()
