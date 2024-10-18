@@ -30,7 +30,7 @@ from config import (
     EMBED_MODEL_NAME,
     EMBED_ENDPOINT,
     INDEX_MODEL_FOR_EXPLANATION,
-    SCENARIO
+    SCENARIO,
 )
 from config_private import COMPARTMENT_OCID
 
@@ -42,14 +42,14 @@ def create_cached_db_manager():
     """
     Function to create and cache the database manager
     """
-    db_manager = DatabaseManager(CONNECT_ARGS, logger)
+    _db_manager = DatabaseManager(CONNECT_ARGS, logger)
 
     if db_manager is None:
         st.error("Error setting up DBManager")
         logger.error("Error setting up DBManager")
         st.stop()
 
-    return db_manager
+    return _db_manager
 
 
 @st.cache_resource
@@ -57,7 +57,7 @@ def create_cached_llm_manager():
     """
     Function to create and cache the LLM manager
     """
-    llm_manager = LLMManager(
+    _llm_manager = LLMManager(
         MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
     )
 
@@ -66,7 +66,7 @@ def create_cached_llm_manager():
         logger.error("Error setting up LLMManager")
         st.stop()
 
-    return llm_manager
+    return _llm_manager
 
 
 def init_session():
@@ -143,7 +143,9 @@ abbreviated_questions = [abbreviate_question(q) for q in sample_questions[SCENAR
 selected_abbreviation = st.sidebar.radio("Choose a question:", abbreviated_questions)
 
 # Find the full question corresponding to the selected abbreviation
-selected_question = sample_questions[SCENARIO][abbreviated_questions.index(selected_abbreviation)]
+selected_question = sample_questions[SCENARIO][
+    abbreviated_questions.index(selected_abbreviation)
+]
 
 if selected_question:
     st.session_state.user_query = (
@@ -157,7 +159,8 @@ CHECK_AI_EXPL_DISABLED = not ENABLE_AI_EXPLANATION
 
 check_show_sql = st.sidebar.checkbox("Show SQL")
 
-check_show_data = st.sidebar.checkbox("Show Data")
+# added 17/10 (Sofia)
+check_show_data = st.sidebar.checkbox("Show Data", value=True)
 
 check_enable_ai_expl = st.sidebar.checkbox(
     "Enable AI explanation", disabled=CHECK_AI_EXPL_DISABLED
@@ -170,15 +173,15 @@ check_enable_rbac = st.sidebar.checkbox("Enable RBAC")
 
 if check_enable_rbac:
     # enabled RBAC read group_id
-    group_id = st.sidebar.number_input(
+    GROUP_ID = st.sidebar.number_input(
         "User group id:", min_value=1, max_value=10, step=1
     )
     # here we set the user profile
-    user_profile = ProfileManager(user_group_id=group_id)
+    USER_PROFILE = ProfileManager(user_group_id=GROUP_ID)
 else:
     # No RBAC
-    user_profile = None
-    group_id = None
+    USER_PROFILE = None
+    GROUP_ID = None
 
 # Create the database engine once and cache it
 db_manager = create_cached_db_manager()
@@ -203,12 +206,12 @@ if submit_button and user_query:
 
     # 1. Run the LLM to generate the SQL query and cleans it (remove initial sql, final ;..)
     # added support for RBAC
-    if user_profile is not None:
-        if user_profile.get_user_group_id() is not None:
-            group_id = user_profile.get_user_group_id()
+    if USER_PROFILE is not None:
+        if USER_PROFILE.get_user_group_id() is not None:
+            GROUP_ID = USER_PROFILE.get_user_group_id()
 
     cleaned_query = st.session_state.sql_agent.generate_sql_query(
-        user_query, user_group_id=group_id
+        user_query, user_group_id=GROUP_ID
     )
 
     if len(cleaned_query) > 0:
@@ -222,7 +225,7 @@ if submit_button and user_query:
                 logger.info("")
                 logger.info("Executing query...")
 
-                logger.info("User group id: %s", group_id)
+                logger.info("User group id: %s", GROUP_ID)
 
                 # now we have two separate spinner
                 with st.spinner("Fetching details from database..."):

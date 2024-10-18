@@ -169,7 +169,9 @@ class AISQLAgent:
 
         if len(sql_query) > 0:
             # ok, generated
-            self.logger.info("SQL query generated.")
+            self.logger.info(
+                "SQL query generated, elapsed time: %3.1f sec.", time_elapsed
+            )
             success = True
         else:
             # query not generated

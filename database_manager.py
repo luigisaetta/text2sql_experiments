@@ -53,7 +53,9 @@ class DatabaseManager:
         """
         try:
             with self.engine.connect() as connection:
-                connection.execute(text(sql_query))
+                # improved 17/10/2024
+                explain_sql = f"EXPLAIN PLAN FOR {sql_query}"
+                connection.execute(text(explain_sql))
             return True
 
         except SQLAlchemyError as db_err:
