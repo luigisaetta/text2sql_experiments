@@ -11,6 +11,7 @@ In addition, the code is changing frequently.
 We store tables summaries in a Vector Store and apply similarity search.
 
 ## References
+This work has been partially inspired by this very interesting article
 * [Pinterest Text2SQL](https://medium.com/pinterest-engineering/how-we-built-text-to-sql-at-pinterest-30bad30dabff)
 
 ## Tests
