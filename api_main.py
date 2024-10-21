@@ -334,22 +334,22 @@ def explain_ai_response_v2(request) -> AIMessage:
     data should be already in the chat history
     the user request is the last msg in history
     """
-    # get the history (request will be added after docs retrieved)
-    msgs = get_conversation(request.conv_id)
-
+    # (request will be added after docs retrieved)
+    
     # get data from RAG (added 18/10/2024)
     docs_retrieved = rag_agent.get_relevant_docs(request.user_query)
 
     # add to message history
     # changed (21/10) to avoid too many messages. Compact in a single msg
-    all_docs = "\n".join([doc.page_content for doc in docs_retrieved])
-    msgs.append(SystemMessage(all_docs))
+    # \n\n try to separate docs
+    all_docs = "\n\n".join([doc.page_content for doc in docs_retrieved])
+    add_msg(request.conv_id, SystemMessage(all_docs))
 
     # add the last request to msg history
     add_msg(request.conv_id, HumanMessage(request.user_query))
 
-    # (from LS to LS: beware the user requests is no more msgs[-1])
-    # (is it important?)
+    msgs = get_conversation(request.conv_id)
+
     return ai_data_analyzer.analyze(msgs)
 
 
