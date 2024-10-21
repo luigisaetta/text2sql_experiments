@@ -39,6 +39,7 @@ analyze_template = ChatPromptTemplate.from_messages(
     [("system", PREAMBLE), MessagesPlaceholder("msgs")]
 )
 
+# this is for undefined requests
 clarify_template = ChatPromptTemplate.from_messages(
     [("system", PREAMBLE_U), MessagesPlaceholder("msgs")]
 )
@@ -69,7 +70,6 @@ class AIDataAnalyzer:
         llm_c = self.llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
         analyze_chain = analyze_template | llm_c
 
-        # msgs[-1] is the last request
         return analyze_chain.invoke({"msgs": msgs})
 
     def answer_not_defined(self, msgs):
@@ -81,5 +81,4 @@ class AIDataAnalyzer:
         llm_c = self.llm_manager.llm_models[INDEX_MODEL_FOR_EXPLANATION]
         clarify_chain = clarify_template | llm_c
 
-        # msgs[-1] is the last request
         return clarify_chain.invoke({"msgs": msgs})

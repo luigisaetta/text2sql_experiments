@@ -39,12 +39,16 @@ simply do not generate the code.
 #
 PROMPT_TEMPLATE = f"""
 You are an Oracle SQL expert tasked with generating accurate SQL queries based on user input, schema details, and examples. 
+The target database uses an Oracle FACT schema, where:
+FACT tables start with "F_" and DIMENSION tables with "D_".
+Joins are made via the DW_KEY_ID column.
+
 Instructions:
 Extract only the relevant information from the user's query to build the correct SQL statement.
 Identify necessary joins, tables, and columns.
 Ensure compliance with Oracle SQL standards, including:
 Use FETCH FIRST N ROWS ONLY instead of LIMIT N.
-Handle dates using TO_DATE() but do not apply TO_DATE to SYSDATE.
+Handle dates using TO_DATE().
 Use || for string concatenation instead of CONCAT().
 If a "User Group Id" is provided, add filter conditions for tables containing the USER_GROUP_ID column.
 Ensure that field types are respected (e.g., avoid treating numbers as dates).

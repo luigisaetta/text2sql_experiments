@@ -274,12 +274,16 @@ def dispatch_request(request, classification: str):
     if classification == "generate_sql":
         output_type = "data"
         try:
+            # add the last request to msg history
+            add_msg(request.conv_id, HumanMessage(request.user_query))
+
             output = generate_and_exec_sql_v2(request)
         except ValueError:
             msg = "SQL not generated! Maybe we don't have the data you're requesting."
             return {"status": "KO", "type": output_type, "content": "", "msg": msg}
 
     elif classification == "analyze_data":
+        # the requst must be added after docs retrieved
         ai_message = explain_ai_response_v2(request)
         output_type = "analysis"
         output = ai_message.content
@@ -289,11 +293,15 @@ def dispatch_request(request, classification: str):
         # output = """Hi, your request is not completely clear to me.
         # Could you please clarify your request and/or provide more info?"""
         # 15/10/2024 now it goes to LLM to create an asnwer based on msgs
+        # add the last request to msg history
+        add_msg(request.conv_id, HumanMessage(request.user_query))
+
         ai_message = clarify_v2(request)
         output_type = "analysis"
         output = ai_message.content
 
     elif classification == "not_allowed":
+        # introduced Guardrail to avoid DDL and DML
         output_type = classification
         output = "Hi, your request is not allowed."
 
@@ -326,16 +334,22 @@ def explain_ai_response_v2(request) -> AIMessage:
     data should be already in the chat history
     the user request is the last msg in history
     """
-    # get the history (contains already last request)
+    # get the history (request will be added after docs retrieved)
     msgs = get_conversation(request.conv_id)
 
-    # get data from RAG
+    # get data from RAG (added 18/10/2024)
     docs_retrieved = rag_agent.get_relevant_docs(request.user_query)
-    # add to message history
-    for doc in docs_retrieved:
-        msgs.append(SystemMessage(doc.page_content))
 
-    # msgs[-1] is the last request
+    # add to message history
+    # changed (21/10) to avoid too many messages. Compact in a single msg
+    all_docs = "\n".join([doc.page_content for doc in docs_retrieved])
+    msgs.append(SystemMessage(all_docs))
+
+    # add the last request to msg history
+    add_msg(request.conv_id, HumanMessage(request.user_query))
+
+    # (from LS to LS: beware the user requests is no more msgs[-1])
+    # (is it important?)
     return ai_data_analyzer.analyze(msgs)
 
 
@@ -393,6 +407,7 @@ def handle_generic_request_v2(request):
 
     # try to see if the request is in cache, to avoid a call to the router
     if ai_sql_agent.get_sql_from_cache(user_query) is not None:
+        # cache contains ONLY Text2SQL request
         # already in cache: the request is to generate_sql!
         classification = "generate_sql"
         # then dispatch will get from the cache
@@ -402,9 +417,6 @@ def handle_generic_request_v2(request):
 
     logger.info("")
     logger.info("Request classified as: %s", classification)
-
-    # add the last request to msg history
-    add_msg(request.conv_id, HumanMessage(user_query))
 
     # Dispatch the request: call the actions
     result = dispatch_request(request, classification)
@@ -425,7 +437,7 @@ def handle_generic_request_v2(request):
 
 def return_as_markdown(result: str) -> str:
     """ "
-    10.10.2024: introduced to support Apex UI for UK Sandox
+    10.10.2024: introduced to support Apex UI for UK Sandbox
     not being able to parse JSON
     """
     result_json = json.loads(result)
