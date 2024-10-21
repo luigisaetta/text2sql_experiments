@@ -2,16 +2,14 @@
 Test BM25
 """
 
-import sys
 import json
 import oracledb
-import tqdm
 from rank_bm25 import BM25Okapi
 
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
-from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
+from langchain_community.embeddings import OCIGenAIEmbeddings
 
 from config import (
     CONNECT_ARGS_VECTOR,
@@ -116,7 +114,7 @@ llm_manager = LLMManager(
     MODEL_LIST, MODEL_ENDPOINTS, COMPARTMENT_OCID, TEMPERATURE, logger
 )
 
-embed_model = OCIGenAIEmbeddingsWithBatch(
+embed_model = OCIGenAIEmbeddings(
     auth_type=AUTH_TYPE,
     model_id=EMBED_MODEL_NAME,
     service_endpoint=EMBED_ENDPOINT,

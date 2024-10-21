@@ -52,4 +52,3 @@ for user_query in USER_QUERIES:
     logger.info(user_query)
     logger.info("Schema len: %5d char.", len(restricted_schema))
     logger.info("")
-
