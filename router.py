@@ -1,8 +1,31 @@
 """
-Router
+File name: router.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
 
-This class provides the logic (based on LLM) to identify a request 
-and route for right action
+Description:
+    This file provide a class to handle the routing of user requests
+    This class provides the logic (based on LLM) to identify a request 
+    and route for right action
+
+Inspired by:
+   
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL taks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 from langchain_core.prompts import PromptTemplate

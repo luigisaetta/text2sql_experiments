@@ -1,14 +1,35 @@
 """
-Encapsulate the entire AI SQL Agent to simplify its usage
+File name: ai_sql_agent.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
 
-Author: L. Saetta (Oracle)
-        19/09/2024
-        v 0.95
+Description:
+    Encapsulate the entire AI SQL Agent to simplify its usage
+
+Inspired by:
+   
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+Dependencies:
+    langChain
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL taks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 import time
-from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
-from core_functions import generate_sql_with_models
+from langchain_community.embeddings import OCIGenAIEmbeddings
+from core_functions import clean_sql_query
 from database_manager import DatabaseManager
 from llm_manager import LLMManager
 from schema_manager_23ai import SchemaManager23AI
@@ -88,7 +109,7 @@ class AISQLAgent:
 
     def _initialize_embed_model(self):
         """Initialize the embedding model for schema manager."""
-        return OCIGenAIEmbeddingsWithBatch(
+        return OCIGenAIEmbeddings(
             auth_type=AUTH_TYPE,
             model_id=self.embed_model_name,
             service_endpoint=self.embed_endpoint,
@@ -157,11 +178,9 @@ class AISQLAgent:
 
         self.logger.info("Generating SQL query...")
 
-        sql_query = generate_sql_with_models(
+        sql_query = self._generate_sql_with_models(
             user_request,
             restricted_schema,
-            self.db_manager,
-            self.llm_manager,
             self.prompt_template,
             user_group_id,
         )
@@ -181,3 +200,44 @@ class AISQLAgent:
             user_request, sql_query, success=success, generation_time=time_elapsed
         )
         return sql_query
+
+    #
+    # Helper
+    #
+    def _generate_sql_with_models(
+        self,
+        user_query,
+        schema,
+        prompt_template,
+        user_group_id=None,
+    ):
+        """
+        Combine SQL generation and post-processing.
+        Use the list of models... if with the first get error then try with second
+        and so on until one succeed
+        Args:
+            user_query (str): User-provided query.
+            schema (str): Formatted schema information.
+            engine: used to test the sintax of the generated query
+            llm_list: Language model list
+        Returns:
+            str: Cleaned SQL query, empty if wrong
+        """
+        for llm in self.llm_manager.llm_models:
+            sql_query, _ = self.llm_manager.generate_sql(
+                user_query, schema, llm, prompt_template, user_group_id
+            )
+
+            if sql_query:
+                cleaned_query = clean_sql_query(sql_query)
+                if self.db_manager.test_query_syntax(cleaned_query):
+                    return cleaned_query  # Return on first success
+
+            # if here the previous showed errors
+            self.logger.info("Trying with another model...")
+
+        self.logger.error("All models failed to generate a valid SQL query.")
+        self.logger.info("User query: %s", user_query)
+
+        # return empty ig generation doesn't succeed
+        return ""

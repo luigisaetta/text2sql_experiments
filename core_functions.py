@@ -1,50 +1,21 @@
 """
 SQL agent core functions
 
-This code comes from an initial work done by A. Panda, then we have added
-several contributions to help increase accuracy
+This code comes from an initial work done by A. Panda, then I have have added
+several contributions to help increase accuracy.
+Today the most important code is encapsulated in ai_sql_agent
+Here we have only utility functions
 """
 
 import re
 
-from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.prompts import PromptTemplate
-
 
 from prompt_template import REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
 from utils import get_console_logger
-from config import VERBOSE, DEBUG
+from config import DEBUG
 
 logger = get_console_logger()
-
-
-def format_schema(schema):
-    """
-    Format the schema information for better readability.
-    Args:
-        schema (dict): Raw schema information.
-    Returns:
-        str: Formatted schema string.
-    """
-    # Split the schema by the CREATE TABLE keyword to separate each table
-    tables = schema["table_info"].split("CREATE TABLE")
-
-    # Reconstruct the schema with better formatting
-    formatted_schema = []
-    for table in tables:
-        if table.strip():  # Check if the table is not an empty string
-            formatted_schema.append(f"CREATE TABLE {table.strip()}\n{'-'*40}\n")
-
-            if DEBUG:
-                logger.info("Table: %s", table.strip())
-
-    if VERBOSE:
-        logger.info("")
-        logger.info("Found information for %s tables...", len(tables))
-        logger.info("")
-
-    return "\n".join(formatted_schema)
 
 
 def clean_schema(schema: str) -> str:
@@ -62,37 +33,6 @@ def clean_schema(schema: str) -> str:
 
     # Return the cleaned schema without extra spaces or lines
     return cleaned_schema.strip()
-
-
-def get_formatted_schema(engine, llm):
-    """
-    Fetch and format the schema information from the database.
-    Args:
-        engine (Engine): SQLAlchemy engine instance.
-        llm: Language model instance.
-    Returns:
-        str: Formatted schema string.
-    """
-    logger.info("Getting schema information...")
-
-    try:
-        toolkit = SQLDatabaseToolkit(db=SQLDatabase(engine), llm=llm)
-
-        raw_schema = toolkit.get_context()
-
-        if DEBUG:
-            logger.info(raw_schema)
-
-        schema = format_schema(raw_schema)
-
-        # added to reduce schema size, remove
-        # last line (compress for) in create table
-        schema = clean_schema(schema)
-
-        return schema
-    except Exception as e:
-        logger.error("Error fetching or formatting schema: %s", e, exc_info=True)
-        return ""
 
 
 def extract_sql_from_response(response_text):
@@ -203,64 +143,3 @@ def clean_sql_query(sql_query):
 
     # remove "sql" for Cohere
     return remove_sql_prefix(cleaned_query)
-
-
-def generate_sql_with_models(
-    user_query, schema, db_manager, llm_manager, prompt_template, user_group_id=None
-):
-    """
-    Combine SQL generation and post-processing.
-    Use a list of models... if with the first get error then try with second
-    and so on until one succeed
-    Args:
-        user_query (str): User-provided query.
-        schema (str): Formatted schema information.
-        engine: used to test the sintax of the generated query
-        llm_list: Language model list
-    Returns:
-        str: Cleaned SQL query, empty if wrong
-    """
-    for llm in llm_manager.llm_models:
-        sql_query, _ = llm_manager.generate_sql(
-            user_query, schema, llm, prompt_template, user_group_id
-        )
-
-        if sql_query:
-            cleaned_query = clean_sql_query(sql_query)
-            if db_manager.test_query_syntax(cleaned_query):
-                return cleaned_query  # Return on first success
-
-        # if here the previous showed errors
-        logger.info("Trying with another model...")
-
-    logger.error("All models failed to generate a valid SQL query.")
-    logger.info("User query: %s", user_query)
-
-    return ""
-
-
-def correct_sql_query(user_query, schema, sql_and_error, llm):
-    """
-    Correct a SQL query with errors.
-    This function can be used as a second try if first gives error.
-
-    To be tested
-    """
-    prompt = PromptTemplate(
-        template=PROMPT_CORRECTION_TEMPLATE,
-        input_variables=["schema", "query", "sql_and_error"],
-    )
-    llm_chain = prompt | llm
-
-    try:
-        response = llm_chain.invoke(
-            {"schema": schema, "query": user_query, "sql_and_error": sql_and_error}
-        )
-        corrected_sql_query = extract_sql_from_response(response.content)
-
-        cleaned_query = clean_sql_query(corrected_sql_query)
-    except Exception as e:
-        logger.error("Error in correct_sql: %s", e)
-        cleaned_query = ""
-
-    return cleaned_query, response.content

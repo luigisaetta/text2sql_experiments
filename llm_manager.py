@@ -1,5 +1,30 @@
 """
-LLMManager
+File name: llm_manager.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
+
+Description:
+    Encapsulate the managemnt of LLM models
+
+Inspired by:
+   
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+Dependencies:
+    langChain
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL tasks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI

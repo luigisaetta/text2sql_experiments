@@ -1,7 +1,30 @@
 """
-AI RAG Agent
+File name: ai_rag_agent.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
 
-This code encapsulate Semantic Search and answer from RAG 
+Description:
+    This code encapsulate Semantic Search and answer from RAG
+
+Inspired by:
+   
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+Dependencies:
+    SQLalchemy
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL taks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 import oracledb
@@ -12,8 +35,8 @@ from langchain_core.prompts import (
 )
 from langchain_community.vectorstores.oraclevs import OracleVS
 
-
-from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
+# now it supports batching, OK
+from langchain_community.embeddings.oci_generative_ai import OCIGenAIEmbeddings
 from llm_manager import LLMManager
 
 from config import (
@@ -86,7 +109,7 @@ class AIRAGAgent:
 
     def _get_embed_model(self):
         """get the embedding model"""
-        return OCIGenAIEmbeddingsWithBatch(
+        return OCIGenAIEmbeddings(
             auth_type=AUTH_TYPE,
             model_id=self.embed_model_name,
             service_endpoint=self.embed_endpoint,

@@ -1,5 +1,30 @@
 """
-RequestCache
+File name: request_cache.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
+
+Description:
+    This file provide a class to handle a cache with all the requests
+    more frequently mad, in NL, and the resulting SQL code
+
+Inspired by:
+   
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL taks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 

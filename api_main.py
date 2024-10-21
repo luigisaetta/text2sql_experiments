@@ -1,8 +1,33 @@
 """
-REST API for SQL query generation
+File name: api_main.py
+Author: Luigi Saetta
+Date last modified: 2024-10-21
+Python Version: 3.11
 
-V2: added management of conversation and routing
-V 2.1: added complete chat with data
+Description:
+    REST API for SQL query generation
+
+    V2: added management of conversation and routing
+    V 2.1: added complete chat with data
+
+Inspired by:
+   
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+
+Dependencies:
+    langChain
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demos showing how to build a SQL Agent
+    for Text2SQL taks
+
+Warnings:
+    This module is in development, may change in future versions.
 """
 
 import json
