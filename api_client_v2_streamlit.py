@@ -17,10 +17,7 @@ API_URL = "http://localhost:8888"
 # Define the available operations
 NAMES = ["chat_with_data", "get_SQL"]
 
-operations = {
-    NAMES[0]: "/v2/handle_data_request",
-    NAMES[1]: "/v2/get_cache_stats",
-}
+operations = {NAMES[0]: "/v2/handle_data_request", NAMES[1]: "/v2/get_cache_stats"}
 
 # examples of question on SH and HR schema
 sample_questions = {

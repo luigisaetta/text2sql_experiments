@@ -335,7 +335,7 @@ def explain_ai_response_v2(request) -> AIMessage:
     the user request is the last msg in history
     """
     # (request will be added after docs retrieved)
-    
+
     # get data from RAG (added 18/10/2024)
     docs_retrieved = rag_agent.get_relevant_docs(request.user_query)
 

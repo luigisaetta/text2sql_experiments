@@ -86,11 +86,17 @@ class DatabaseManager:
                 explain_sql = f"EXPLAIN PLAN FOR {sql_query}"
                 connection.execute(text(explain_sql))
             return True
-
         except SQLAlchemyError as db_err:
-            self.logger.error("Error in DatabaseManager:test_query_sintax...")
-            self.logger.error("SQL query syntax error: %s", db_err)
-            return False
+            # to handle the problem with "list all the available tables"
+            try:
+                with self.engine.connect() as connection:
+                    # test directly the query not the explain
+                    connection.execute(text(sql_query))
+                return True
+            except Exception as db_err:
+                self.logger.error("Error in DatabaseManager:test_query_sintax...")
+                self.logger.error("SQL query syntax error: %s", db_err)
+                return False
         except Exception as e:
             self.logger.error("Error in DatabaseManager:test_query_sintax...")
             self.logger.error("SQL query generic error: %s", e)

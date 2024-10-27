@@ -11,7 +11,7 @@ import re
 
 from langchain.prompts import PromptTemplate
 
-from prompt_template import REPHRASE_PROMPT, PROMPT_CORRECTION_TEMPLATE
+from prompt_template import REPHRASE_PROMPT
 from utils import get_console_logger
 from config import DEBUG
 
