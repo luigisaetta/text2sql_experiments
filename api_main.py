@@ -48,6 +48,7 @@ from llm_manager import LLMManager
 from router import Router
 from ai_sql_agent import AISQLAgent
 from ai_rag_agent import AIRAGAgent
+from ai_reranker import Reranker
 from ai_data_analyzer import AIDataAnalyzer
 
 from prompt_template import PROMPT_TEMPLATE
@@ -118,6 +119,8 @@ ai_sql_agent = AISQLAgent(
     TEMPERATURE,
     PROMPT_TEMPLATE,
 )
+
+reranker = Reranker(llm_manager, logger)
 
 ai_data_analyzer = AIDataAnalyzer(llm_manager)
 
@@ -337,12 +340,17 @@ def explain_ai_response_v2(request) -> AIMessage:
     # (request will be added after docs retrieved)
 
     # get data from RAG (added 18/10/2024)
+    logger.info("Searching for relevant documents in Vector Store...")
     docs_retrieved = rag_agent.get_relevant_docs(request.user_query)
+
+    # here we should filter docs with reranking to keep only those relevant
+    logger.info("Reranking docs...")
+    reranked_docs = reranker.rerank_docs_for_rag(request.user_query, docs_retrieved)
 
     # add to message history
     # changed (21/10) to avoid too many messages. Compact in a single msg
     # \n\n try to separate docs
-    all_docs = "\n\n".join([doc.page_content for doc in docs_retrieved])
+    all_docs = "\n\n".join([doc.page_content for doc in reranked_docs])
     add_msg(request.conv_id, SystemMessage(all_docs))
 
     # add the last request to msg history

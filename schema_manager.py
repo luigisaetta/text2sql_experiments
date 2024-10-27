@@ -18,13 +18,13 @@ import oracledb
 from langchain_core.prompts import PromptTemplate
 from langchain.docstore.document import Document
 
-from prompt_template import PROMPT_TABLE_SUMMARY, PROMPT_RERANK
+from ai_reranker import Reranker
+from prompt_template import PROMPT_TABLE_SUMMARY
 from config import (
     CONNECT_ARGS,
     DEBUG,
     TOP_N,
     N_SAMPLES,
-    INDEX_MODEL_FOR_RERANKING,
     INDEX_MODEL_FOR_SUMMARY,
 )
 from config_private import DB_USER
@@ -387,18 +387,10 @@ class SchemaManager(ABC):
         produce a restricted TOP_N list
         """
         # to be implemented and plugged in get_restricted schema
-        table_select_prompt = PromptTemplate.from_template(PROMPT_RERANK)
+        reranker = Reranker(self.llm_manager, self.logger)
 
-        llm_r = self.llm_manager.llm_models[INDEX_MODEL_FOR_RERANKING]
-        rerank_chain = table_select_prompt | llm_r
-
-        result = rerank_chain.invoke(
-            {
-                "top_n": TOP_N,
-                "table_schemas": top_k_schemas,
-                "question": query,
-            }
-        )
+        self.logger.info("Calling reranker...")
+        result = reranker.rerank_table_list(query, top_k_schemas)
 
         # extract the table list (in result it is surrounded by triple backtick)
         reranked_tables_list = self._extract_list(result.content)

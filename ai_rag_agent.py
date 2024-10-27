@@ -38,6 +38,7 @@ from langchain_community.vectorstores.oraclevs import OracleVS
 # now it supports batching, OK
 from langchain_community.embeddings.oci_generative_ai import OCIGenAIEmbeddings
 from llm_manager import LLMManager
+from ai_reranker import Reranker
 
 from config import (
     AUTH_TYPE,
@@ -94,6 +95,7 @@ class AIRAGAgent:
         self.logger = logger
 
         self.llm_manager = self._initialize_llm_manager()
+        self.reranker = self._initialize_reranker()
 
         logger.info("RAG Agent initialised...")
 
@@ -106,6 +108,9 @@ class AIRAGAgent:
             self.temperature,
             self.logger,
         )
+
+    def _initialize_reranker(self):
+        return Reranker(self.llm_manager, self.logger)
 
     def _get_embed_model(self):
         """get the embedding model"""
@@ -120,8 +125,6 @@ class AIRAGAgent:
         """ "
         given a user request, get from the collection relevant chunks of doc
         """
-        self.logger.info("Searching for relevant documents in Vector Store...")
-
         embed_model = self._get_embed_model()
 
         with self._get_vector_db_connection() as conn:
@@ -147,10 +150,15 @@ class AIRAGAgent:
         msgs = []
 
         # do semantic search
+        self.logger.info("Searching for relevant documents in Vector Store...")
         docs = self.get_relevant_docs(user_request)
 
+        # here we should filter docs with reranking
+        self.logger.info("Reranking docs...")
+        reranked_docs = self.reranker.rerank_docs_for_rag(user_request, docs)
+
         # load docs retrieved in msgs
-        for doc in docs:
+        for doc in reranked_docs:
             msgs.append(SystemMessage(doc.page_content))
 
         # build the chain
@@ -160,6 +168,7 @@ class AIRAGAgent:
         # msgs[-1] is the last request
         msgs.append(HumanMessage(user_request))
 
+        self.logger.info("Generating answer...")
         return answer_chain.invoke({"msgs": msgs})
 
     def _get_vector_db_connection(self):

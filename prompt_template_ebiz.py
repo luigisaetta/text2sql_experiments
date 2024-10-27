@@ -127,7 +127,7 @@ Response guideline
 #
 # This is the prompt used to rerank the list of candidate table for SQL query
 #
-PROMPT_RERANK = """
+PROMPT_RERANK_TABLES = """
 You are a data scientist that can help select the most relevant tables for SQL query tasks.
 
 Please select the most relevant table(s) that can be used to generate SQL query for the question.
