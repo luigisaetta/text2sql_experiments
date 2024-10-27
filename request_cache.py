@@ -55,6 +55,8 @@ class RequestCache:
         self.cache[request_nl]["count"] += 1
         if success:
             self.cache[request_nl]["success"] += 1
+            # add sql to cache (fix bug 27/10/2024)
+            self.cache[request_nl]["sql"] = sql_query
         else:
             self.cache[request_nl]["failures"] += 1
 

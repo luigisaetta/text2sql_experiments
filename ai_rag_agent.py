@@ -125,6 +125,8 @@ class AIRAGAgent:
         """ "
         given a user request, get from the collection relevant chunks of doc
         """
+        # TODO: improve, user request should be rephrased with the msg history
+
         embed_model = self._get_embed_model()
 
         with self._get_vector_db_connection() as conn:

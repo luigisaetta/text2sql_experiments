@@ -40,6 +40,10 @@ and total number of hour reported""",
         """show the names of all employees who registered absences started in 2017 
 and the total hours for each absence type name""",
         "show all the employee located in US who have reported absences in 2017",
+        """Create a report titled Absence by Department, aggregating over all absence type. 
+Report data in tabular format. Analyze the data and see if any 
+policies apply to departments.
+""",
     ],
 }
 

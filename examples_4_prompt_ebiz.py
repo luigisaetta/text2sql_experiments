@@ -33,4 +33,11 @@ ON f_absence.absence_type_wid = d_absence_type.dw_key_id WHERE f_absence.absence
 AND f_absence.absence_dt_wid < 20180101 GROUP BY d_dept.department_name, d_emp.emp_name, d_absence_type.absence_type_name 
 ORDER BY d_dept.department_name, total_hours_reported DESC
 
+User Query: show all the employee located in US who have reported absences in 2017.
+SQL Query: SELECT DISTINCT d_emp.emp_name FROM F_ABSENCE f_absence 
+JOIN D_EMPLOYEE d_emp ON f_absence.employee_wid = d_emp.dw_key_id 
+JOIN D_LOCATION d_loc ON f_absence.location_wid = d_loc.dw_key_id 
+WHERE f_absence.absence_dt_wid >= 20170101 AND f_absence.absence_dt_wid < 20180101 
+AND d_loc.country = 'US' ORDER BY d_emp.emp_name
+
 """
